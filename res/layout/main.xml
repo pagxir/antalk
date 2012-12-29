@@ -54,7 +54,7 @@
 				android:id="@+id/exception_detail"
 				android:layout_width="fill_parent"
 				android:layout_height="fill_parent"
-				android:text="" />
+				android:text="@string/cancel" />
 		</FrameLayout>
 	</LinearLayout>
 	<!-- android:orientation="horizontal" -->

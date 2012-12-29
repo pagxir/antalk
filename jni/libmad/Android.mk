@@ -1,8 +1,9 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
+LOCAL_PRELINK_MODULE := false
 
-LOCAL_MODULE    := madplay
+LOCAL_MODULE    := libmad
 LOCAL_ARM_MODE  := arm
 LOCAL_SRC_FILES :=	mad/bit.c \
 					mad/decoder.c \
@@ -17,7 +18,7 @@ LOCAL_SRC_FILES :=	mad/bit.c \
 					mad/version.c \
 					wrapper.c
 
-LOCAL_CFLAGS := -DHAVE_CONFIG_H -ffast-math -O3
+LOCAL_CFLAGS := -DHAVE_CONFIG_H -ffast-math -O3 -DFPM_DEFAULT
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 	LOCAL_CFLAGS += -DFPM_ARM 
 endif

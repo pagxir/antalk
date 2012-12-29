@@ -1,5 +1,5 @@
-JNI_PATH := $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 
-include $(JNI_PATH)/libmad/Android.mk
-include $(JNI_PATH)/libshine/Android.mk
+include $(CLEAR_VARS)
+include $(call all-makefiles-under,$(LOCAL_PATH))
 

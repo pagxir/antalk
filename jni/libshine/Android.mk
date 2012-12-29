@@ -1,8 +1,9 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
+LOCAL_PRELINK_MODULE := false
 
-LOCAL_MODULE := shine
+LOCAL_MODULE := libshine
 LOCAL_CFLAGS := -DHAVE_CONFIG_H -ffast-math -O3
 LOCAL_SRC_FILES :=	bitstream.c \
 					coder.c \
