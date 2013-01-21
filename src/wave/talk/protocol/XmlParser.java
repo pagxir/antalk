@@ -1,4 +1,4 @@
-package wave.talk;
+package wave.talk.protocol;
 
 import java.io.*;
 import java.nio.*;
@@ -6,7 +6,7 @@ import java.nio.channels.*;
 import org.w3c.dom.*;
 import javax.xml.parsers.*;
 
-public class XMPPParser {
+public class XmlParser {
 	Document document;
 	DocumentBuilder builder;
 	DocumentBuilderFactory factory =

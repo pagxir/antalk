@@ -1,4 +1,4 @@
-package wave.talk;
+package wave.talk.protocol;
 
 import java.util.*;
 import org.w3c.dom.*;

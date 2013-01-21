@@ -1,4 +1,4 @@
-package wave.talk;
+package wave.talk.protocol;
 
 import wave.ssl.*;
 import wave.slot.*;
