@@ -10,6 +10,7 @@ import javax.net.ssl.*;
 import java.nio.*;
 import org.w3c.dom.*;
 import java.nio.channels.*;
+import wave.talk.PacketCallback;
 import java.util.logging.*;
 import wave.talk.protocol.FastXmlVisitor;
 import wave.util.InetUtil;

@@ -3,7 +3,6 @@ package wave.talk;
 import org.w3c.dom.Element;
 import wave.slot.SlotWait;
 import wave.talk.ProtoPlugcan;
-import wave.talk.Jabber.*;
 import java.net.SocketAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;

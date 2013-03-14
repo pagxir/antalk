@@ -3,13 +3,13 @@ package wave.talk;
 import org.w3c.dom.Element;
 import wave.slot.SlotWait;
 import wave.talk.ProtoPlugcan;
-import wave.talk.Jabber.*;
 import java.net.SocketAddress;
 import java.net.InetSocketAddress;
 import wave.talk.protocol.FastXmlVisitor;
 import wave.talk.ProtoPlugcan.ProtoPlugin;
 import wave.talk.STUNPingPong.Negotiatable;
 import wave.util.InetUtil;
+import wave.talk.protocol.Jabber;
 
 public class DatagramPingPong extends ProtoPlugin {
 
