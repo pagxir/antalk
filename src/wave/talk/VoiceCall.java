@@ -6,6 +6,7 @@ import android.content.Intent;
 import wave.slot.SlotWait;
 import wave.slot.SlotSlot;
 import wave.talk.JabberDaemon;
+import wave.talk.protocol.Jabber;
 import wave.talk.ProtoPlugcan.ProtoPlugin;
 
 public class VoiceCall extends ProtoPlugin {

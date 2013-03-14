@@ -26,6 +26,7 @@ import wave.slot.SlotRunner;
 import android.util.Base64;
 import android.app.Dialog;
 import android.app.AlertDialog;
+import wave.talk.protocol.Jabber;
 
 public class ChatDialog extends Dialog implements OnClickListener
 {

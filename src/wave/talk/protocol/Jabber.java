@@ -11,12 +11,13 @@ import java.nio.*;
 import org.w3c.dom.*;
 import java.nio.channels.*;
 import java.util.logging.*;
-import wave.talk.FastXmlVisitor;
+import wave.talk.protocol.FastXmlVisitor;
 import wave.util.InetUtil;
+import wave.talk.ProtoPlugcan;
 
 public class Jabber implements Runnable {
 	public boolean disconnected = false;
-	public String  messageTitle = "未连接";
+	public String  messageTitle = "not connected";
 	private SlotWait dnsWait = new SlotWait(this);
 	private SlotWait readWait = new SlotWait(this);
 	private SlotWait writeWait = new SlotWait(this);
@@ -84,7 +85,7 @@ public class Jabber implements Runnable {
 	SocketChannel channel = null;
 	MySSLChannel  sslwrapper = null;
 
-	XMPPParser parser = new XMPPParser();
+	XmlParser parser = new XmlParser();
 	SlotChannel chanslot = new SlotChannel();
 
 	public void run() {
@@ -210,7 +211,7 @@ public class Jabber implements Runnable {
 		logger.log(Level.INFO, "dispatchEvent invoke ");
 
 		if (matchFlags(WF_RESOLV, WF_CONFIGURE)) {
-			messageTitle = "查找服务器";
+			messageTitle = "finding server";
 			if (loginServer == null)
 				lookupServer(loginDomain);
 			if (loginServer != null)
@@ -219,7 +220,7 @@ public class Jabber implements Runnable {
 
 		if (matchFlags(WF_CONNECTING, WF_RESOLV)) {
 			chanslot.attach(channel);
-			messageTitle = "连接服务器";
+			messageTitle = "connect server";
 			InetAddress addr = InetAddress.getByName(loginServer);
 			sslwrapper = new MySSLChannel(channel);
 			channel.connect(new InetSocketAddress(addr, 5222));
@@ -263,7 +264,7 @@ public class Jabber implements Runnable {
 					bgflags |= WF_STARTTLS;
 					putPacket(starttls);
 				} else {
-					messageTitle = "禁用加密连接";
+					messageTitle = "disable secure connect";
 					bgflags |= WF_HANDSHAKE;
 				}
 				chanslot.wantIn(readWait);
@@ -271,7 +272,7 @@ public class Jabber implements Runnable {
 		}
 
 		if (matchFlags(WF_PROCEED, WF_STARTTLS)) {
-			messageTitle = "建立加密连接";
+			messageTitle = "est secure connect";
 			if (readWait.completed() &&
 					parser.readPacket(sslwrapper)) {
 				bgflags |= WF_PROCEED;
@@ -310,11 +311,11 @@ public class Jabber implements Runnable {
 			if (readWait.completed() &&
 					parser.readPacket(sslwrapper)) {
 				if (loginSuccess(parser.packet())) {
-					messageTitle = "验证成功";
+					messageTitle = "auth success";
 					bgflags |= WF_SUCCESS;
 				} else {
 					disconnect("login failure");
-					messageTitle = "验证失败";
+					messageTitle = "auth failure";
 				}
 			} else if (!parser.atEOF()) {
 				readWait.clear();
@@ -343,7 +344,7 @@ public class Jabber implements Runnable {
 			stateCallback.run();
 			putPacket("<presence/>");
 			bgflags |= WF_PRESENCE;
-			messageTitle = "登录完成";
+			messageTitle = "finish login";
 		}
 
 		if (matchFlags(WF_DISCONNECT, WF_QUERY1ST)) {
@@ -457,7 +458,7 @@ public class Jabber implements Runnable {
 		return true;
 	}
 
-	synchronized void close() {
+	public synchronized void close() {
 		uiflags |= WF_DISCONNECT;
 		stateChanged();
 	}

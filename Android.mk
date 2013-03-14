@@ -7,6 +7,7 @@ LOCAL_CERTIFICATE := platform
 LOCAL_PACKAGE_NAME := WireTalk
 LOCAL_JNI_SHARED_LIBRARIES := libmad libshine
 
+LOCAL_PACKAGE := antalk
 include $(BUILD_PACKAGE)
 
 include $(CLEAR_VARS)

@@ -60,6 +60,7 @@ import java.util.*;
 import java.nio.ByteOrder;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import wave.talk.protocol.Jabber;
 import wave.talk.STUNPingPong.Negotiatable;
 
 public class RecordActivity extends Activity
@@ -86,12 +87,12 @@ public class RecordActivity extends Activity
 			phoneCallNotify(getIntent());
 
 		Button startButton = (Button)findViewById(R.id.start_record);
-		startButton.setText(action.equals("calling")? "呼叫": "接听");
+		startButton.setText(action.equals("calling")? "Call": "Receive");
 		startButton.setOnClickListener(this);
 		STUNPingPong.startPhoneCall();
 
 		Button stopButton = (Button)findViewById(R.id.stop_record);
-		this.setTitle("与" + getIntent().getStringExtra("name") + "通话");
+		this.setTitle("to" + getIntent().getStringExtra("name") + "calling");
 		stopButton.setOnClickListener(this);
 
 		try {
@@ -148,7 +149,7 @@ public class RecordActivity extends Activity
 					while(playing);
 					playing = play = true;
 					ipchandler.ipcSchedule();
-					setTitle("呼叫对方");
+					setTitle("calling");
 				}
         		manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
 		        manager.cancel(notification_id);
@@ -235,7 +236,7 @@ public class RecordActivity extends Activity
 	Runnable recdog = new Runnable() {
 		public void run() {
 			connected = true;
-			setTitle("	记录中 ");
+			setTitle("	recording ");
 			recorder.start(peerAddress);
 			return ;
 		}
@@ -386,9 +387,9 @@ public class RecordActivity extends Activity
     private void phoneCallNotify(Intent intent) {
         int icon = R.drawable.icon;
         long millis = System.currentTimeMillis();
-        String title = "软电话";
-        String content = "等待应答";
-        String trickertext = "XMPP呼叫";
+        String title = "softPhone";
+        String content = "wait answering";
+        String trickertext = "XMPP calling";
         Notification notification = new Notification(icon, trickertext, millis);
         notification.defaults = Notification.DEFAULT_ALL;
         PendingIntent pt = PendingIntent.getActivity(this, 0, intent, 0);

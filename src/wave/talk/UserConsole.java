@@ -4,7 +4,6 @@ import java.io.*;
 import wave.slot.*;
 import org.w3c.dom.*;
 import wave.talk.STUNPingPong;
-import wave.talk.FastXmlVisitor;
 
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -13,6 +12,8 @@ import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.InetSocketAddress;
 import wave.util.InetUtil;
+import wave.talk.protocol.Jabber;
+import wave.talk.protocol.FastXmlVisitor;
 
 public class UserConsole implements Runnable, PacketCallback {
 	static Jabber talk;
@@ -125,7 +126,7 @@ public class UserConsole implements Runnable, PacketCallback {
 				.getElement("body").getValue();
 			/* e.getNamespaceURI();  */
 			from = from.replaceAll("/.*", "");
-			System.out.println("来自 [" + from + "] 的消息:");
+			System.out.println("from [" + from + "] message:");
 			System.out.println(body);
 		} else if (packet.getTagName().equals("presence")) {
 			if (type == null || type.equals(""))

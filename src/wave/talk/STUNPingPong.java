@@ -9,6 +9,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import wave.talk.ProtoPlugcan.ProtoPlugin;
+import wave.talk.protocol.Jabber;
+import wave.talk.protocol.FastXmlVisitor;
 
 public class STUNPingPong extends ProtoPlugin {
 	private IPhoneBack phoneback;
@@ -119,7 +121,7 @@ public class STUNPingPong extends ProtoPlugin {
 		private String target;
 		private Negotiatable negable;
 		public void start(String target, Negotiatable negable) {
-			notifyMessage = "呼叫对方";
+			notifyMessage = "calling peer";
 			this.negable = negable;
 			this.target = target;
 			this.run();
@@ -136,7 +138,7 @@ public class STUNPingPong extends ProtoPlugin {
 			this.target = target;
 			this.initiator = target;
 			DatagramPingPong.register(initiator, sid, negotiable);
-			notifyMessage = "应答对方";
+			notifyMessage = "anser peer";
 			android.util.Log.i("jabber", "started call ssid = " + sid + ", initiator = " + initiator);
 			wait.schedule();
 		}
@@ -152,7 +154,7 @@ public class STUNPingPong extends ProtoPlugin {
 					result = (Element)wait.result;
 					typeMatch = visitor.useElement(result).getAttribute("type");
 					if (typeMatch.equals("error"))
-						notifyMessage = "对方拒绝呼叫";
+						notifyMessage = "peer reject calling";
 					return typeMatch.equals(type);
 				}
 				return true;
@@ -172,19 +174,19 @@ public class STUNPingPong extends ProtoPlugin {
 			}
 
 			if (supportSTUN(wait) && !waitLocal.started()) {
-				notifyMessage = "本地通道协商";
+				notifyMessage = "local channel neg";
 				String qstr = buildQuery(client.getLocal(), "local");
         		talk.putQuery(Jabber.SET, target, qstr, waitLocal);
 			}
 
 			if (supportSTUN(wait) && !stun.started()) {
 				stun.clear();
-				notifyMessage = "查找远程地址";
+				notifyMessage = "find remote address";
             	client.send(client.requestMapping(), stun);
 			}
 
 			if (stun.completed() && !waitRemote.started()) {
-				notifyMessage = "远程通道协商";
+				notifyMessage = "remote channel negi";
 				InetSocketAddress socketAddress = client.getMapping();
 				if (socketAddress != null) {
 					String qstr = buildQuery(socketAddress, "remote");

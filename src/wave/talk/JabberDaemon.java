@@ -13,6 +13,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.widget.Toast;
+import wave.talk.protocol.Jabber;
 
 public class JabberDaemon extends Service implements Runnable {
 	private XMPPBinder binder = new XMPPBinder();
@@ -76,7 +77,7 @@ public class JabberDaemon extends Service implements Runnable {
 	}
 
 	public void run() {
-		String title = "Jabber服务异常退出";
+		String title = "jabber exited unnormal";
 
 		try {
 			mainLoop();
@@ -165,7 +166,7 @@ public class JabberDaemon extends Service implements Runnable {
 			public Intent doPhoneCalling(String action, String jid) {
 				Intent calling = new Intent(JabberDaemon.this, RecordActivity.class);
 				calling.putExtra("jid", jid);
-				calling.putExtra("name", "未知");
+				calling.putExtra("name", "unkown");
 				calling.putExtra("action", action);
 				return calling;
 			}

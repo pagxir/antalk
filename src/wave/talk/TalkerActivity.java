@@ -41,6 +41,8 @@ import org.w3c.dom.*;
 import wave.slot.SlotWait;
 import wave.slot.SlotRunner;
 import wave.talk.VoiceActivity;
+import wave.talk.protocol.Jabber;
+import wave.talk.protocol.FastXmlVisitor;
 import android.os.IBinder;
 import android.os.Handler;
 import android.util.Base64;
@@ -94,11 +96,11 @@ public class TalkerActivity extends Activity
 		listView.setOnItemClickListener(adapter);
 
 		tabhost.addTab(tabhost.newTabSpec("tab1")
-				.setIndicator("列表").setContent(R.id.list));
+				.setIndicator("list").setContent(R.id.list));
 		tabhost.addTab(tabhost.newTabSpec("tab2")
-				.setIndicator("聊天").setContent(R.id.layout2));
+				.setIndicator("chat").setContent(R.id.layout2));
 		tabhost.addTab(tabhost.newTabSpec("tab3")
-				.setIndicator("日志").setContent(R.id.exception_detail));
+				.setIndicator("log").setContent(R.id.exception_detail));
 		tabhost.setCurrentTab(0);
 
 		if (bundle != null) {
@@ -155,7 +157,7 @@ public class TalkerActivity extends Activity
 				usetls = (CheckBox)dialog.findViewById(R.id.login_cb_usetls);
 				passEditText = (EditText)dialog.findViewById(R.id.login_edit_pwd);
 				userEditText = (EditText)dialog.findViewById(R.id.login_edit_account);
-				setTitle("正在登录中...");
+				setTitle("login...");
 
 				user = userEditText.getText().toString();
 				password = passEditText.getText().toString();
@@ -205,9 +207,9 @@ public class TalkerActivity extends Activity
 	/* @Override */
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		menu.add(0, 0, 0, "呼叫");
-		menu.add(0, 1, 1, "关于");
-		menu.add(0, 2, 2, "退出");
+		menu.add(0, 0, 0, "call");
+		menu.add(0, 1, 1, "abort");
+		menu.add(0, 2, 2, "exit");
 		return true;
 	}
 
@@ -215,7 +217,7 @@ public class TalkerActivity extends Activity
 		public void run() {
 			setTitle(talker.messageTitle);
 			if (talker.disconnected) {
-				ShowText("连接已经断开");
+				ShowText("disconnected");
 				return;
 			}
 
@@ -256,15 +258,15 @@ public class TalkerActivity extends Activity
 					Jabber.setSticky(talker);
 					startActivity(calling);
 				} else {
-					String title = "请选择一个用户";
+					String title = "please choose a user";
 					ShowText(title);
 				}
 				*/
 				break;
 
 			case 1:
-				String title = "欢迎pagxir的blog.";
-				ShowText("欢迎pagxir的blog.");
+				String title = "welcome to pagxir's blog.";
+				ShowText("welcome to pagxir's blog.");
 				break;
 
 			case 2:
@@ -537,15 +539,15 @@ public class TalkerActivity extends Activity
 			String show = visitor.getElement("show").getValue();
 
 			if (show.equals("away"))
-				return "离开";
+				return "away";
 			if (show.equals("chat"))
-				return "空闲";
+				return "idle";
 			if (show.equals("dnd"))
-				return "在忙";
+				return "busy";
 			if (show.equals("xa"))
-				return "离开";
+				return "leave";
 
-			return "在线";
+			return "online";
 		}
 
 		public String getNickName(String from) {
@@ -565,9 +567,9 @@ public class TalkerActivity extends Activity
     	private void phoneCallNotify(Intent intent) {
         	int icon = R.drawable.icon;
         	long millis = System.currentTimeMillis();
-        	String title = "软电话";
-        	String content = "等待应答";
-        	String trickertext = "XMPP呼叫";
+        	String title = "softphone";
+        	String content = "waiting answer";
+        	String trickertext = "XMPP call";
         	Notification notification = new Notification(icon, trickertext, millis);
         	notification.defaults = Notification.DEFAULT_ALL;
         	PendingIntent pt = PendingIntent.getActivity(TalkerActivity.this, 0, intent, 0);
@@ -587,7 +589,7 @@ public class TalkerActivity extends Activity
 			peer = rosters.get(position).get("jid");
 			tabhost.setCurrentTab(1);
 
-			activity.setTitle("正在与 " + getNickName(peer) + " 聊天中");
+			activity.setTitle("with " + getNickName(peer) + " chatting");
 		}
 
 		private void updateRosterView(Element presence, Element roster) {
