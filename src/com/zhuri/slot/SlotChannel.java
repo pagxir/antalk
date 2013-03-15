@@ -1,4 +1,4 @@
-package wave.slot;
+package com.zhuri.slot;
 
 import java.nio.channels.*;
 

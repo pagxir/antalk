@@ -1,15 +1,15 @@
-package wave.talk;
+package com.zhuri.talk;
 
 import org.w3c.dom.Element;
-import wave.slot.SlotWait;
-import wave.talk.ProtoPlugcan;
+import com.zhuri.slot.SlotWait;
+import com.zhuri.talk.ProtoPlugcan;
 import java.net.SocketAddress;
 import java.net.InetSocketAddress;
-import wave.talk.protocol.FastXmlVisitor;
-import wave.talk.ProtoPlugcan.ProtoPlugin;
-import wave.talk.STUNPingPong.Negotiatable;
-import wave.util.InetUtil;
-import wave.talk.protocol.Jabber;
+import com.zhuri.talk.protocol.FastXmlVisitor;
+import com.zhuri.talk.ProtoPlugcan.ProtoPlugin;
+import com.zhuri.talk.STUNPingPong.Negotiatable;
+import com.zhuri.util.InetUtil;
+import com.zhuri.talk.protocol.Jabber;
 
 public class DatagramPingPong extends ProtoPlugin {
 

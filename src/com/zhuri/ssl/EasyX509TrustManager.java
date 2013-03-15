@@ -1,4 +1,4 @@
-package wave.ssl;
+package com.zhuri.ssl;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;

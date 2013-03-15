@@ -1,4 +1,4 @@
-package wave.talk;
+package com.zhuri.talk;
 
 import android.os.Bundle;
 import android.app.Activity;

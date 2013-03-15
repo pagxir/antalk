@@ -1,4 +1,4 @@
-package wave.slot;
+package com.zhuri.slot;
 
 public class SlotSlot {
 	SlotWait header = new SlotWait();

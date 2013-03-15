@@ -1,4 +1,4 @@
-package wave.talk.protocol;
+package com.zhuri.talk.protocol;
 
 import java.io.*;
 import java.nio.*;

@@ -1,9 +1,9 @@
-package wave.talk;
+package com.zhuri.talk;
 
 import java.io.*;
-import wave.slot.*;
+import com.zhuri.slot.*;
 import org.w3c.dom.*;
-import wave.talk.STUNPingPong;
+import com.zhuri.talk.STUNPingPong;
 
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -11,9 +11,9 @@ import java.nio.channels.DatagramChannel;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.InetSocketAddress;
-import wave.util.InetUtil;
-import wave.talk.protocol.Jabber;
-import wave.talk.protocol.FastXmlVisitor;
+import com.zhuri.util.InetUtil;
+import com.zhuri.talk.protocol.Jabber;
+import com.zhuri.talk.protocol.FastXmlVisitor;
 
 public class UserConsole implements Runnable, PacketCallback {
 	static Jabber talk;

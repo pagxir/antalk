@@ -1,9 +1,9 @@
-package wave.talk;
+package com.zhuri.talk;
 
-import wave.slot.SlotSlot;
-import wave.slot.SlotWait;
-import wave.slot.SlotTimer;
-import wave.slot.SlotChannel;
+import com.zhuri.slot.SlotSlot;
+import com.zhuri.slot.SlotWait;
+import com.zhuri.slot.SlotTimer;
+import com.zhuri.slot.SlotChannel;
 
 import android.util.Log;
 import android.os.Handler;
@@ -13,7 +13,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.widget.Toast;
-import wave.talk.protocol.Jabber;
+import com.zhuri.talk.protocol.Jabber;
 
 public class JabberDaemon extends Service implements Runnable {
 	private XMPPBinder binder = new XMPPBinder();

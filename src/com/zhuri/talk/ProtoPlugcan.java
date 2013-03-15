@@ -1,11 +1,11 @@
-package wave.talk;
+package com.zhuri.talk;
 
-import wave.talk.protocol.Jabber;
-import wave.talk.STUNPingPong;
-import wave.talk.DatagramPingPong;
+import com.zhuri.talk.protocol.Jabber;
+import com.zhuri.talk.STUNPingPong;
+import com.zhuri.talk.DatagramPingPong;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
-import wave.talk.protocol.Jabber;
+import com.zhuri.talk.protocol.Jabber;
 
 public class ProtoPlugcan {
 

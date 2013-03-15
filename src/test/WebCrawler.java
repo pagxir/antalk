@@ -2,7 +2,7 @@ package test;
 
 import java.net.*;
 import java.nio.*;
-import wave.slot.*;
+import com.zhuri.slot.*;
 import java.nio.channels.*;
 
 public class WebCrawler {

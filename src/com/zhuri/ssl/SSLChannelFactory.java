@@ -6,9 +6,9 @@
  * All rights reserved. Relased under terms of the
  * Creative Commons' Attribution-NonCommercial-ShareAlike license.
  */
-package wave.ssl;
+package com.zhuri.ssl;
 
-import wave.slot.*;
+import com.zhuri.slot.*;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;

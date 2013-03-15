@@ -1,4 +1,4 @@
-package wave.talk;
+package com.zhuri.talk;
 
 import android.os.IBinder;
 import android.app.Service;

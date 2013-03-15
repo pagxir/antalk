@@ -1,4 +1,4 @@
-package wave.talk.protocol;
+package com.zhuri.talk.protocol;
 
 import java.util.*;
 import org.w3c.dom.*;

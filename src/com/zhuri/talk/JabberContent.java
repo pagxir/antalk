@@ -1,4 +1,4 @@
-package wave.talk;
+package com.zhuri.talk;
 
 import android.net.Uri;
 import android.database.Cursor;

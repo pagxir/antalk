@@ -1,14 +1,14 @@
-package wave.talk;
+package com.zhuri.talk;
 
 import java.io.*;
 import java.util.*;
-import wave.talk.*;
+import com.zhuri.talk.*;
 import android.util.Log;
-import wave.slot.SlotChannel;
+import com.zhuri.slot.SlotChannel;
 import java.nio.ByteBuffer;
 import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
-import wave.talk.JabberDaemon.XMPPBinder;
+import com.zhuri.talk.JabberDaemon.XMPPBinder;
 
 import android.os.Bundle;
 import android.content.Context;
@@ -38,11 +38,11 @@ import android.text.method.*;
 import android.graphics.drawable.Drawable;
 
 import org.w3c.dom.*;
-import wave.slot.SlotWait;
-import wave.slot.SlotRunner;
-import wave.talk.VoiceActivity;
-import wave.talk.protocol.Jabber;
-import wave.talk.protocol.FastXmlVisitor;
+import com.zhuri.slot.SlotWait;
+import com.zhuri.slot.SlotRunner;
+import com.zhuri.talk.VoiceActivity;
+import com.zhuri.talk.protocol.Jabber;
+import com.zhuri.talk.protocol.FastXmlVisitor;
 import android.os.IBinder;
 import android.os.Handler;
 import android.util.Base64;

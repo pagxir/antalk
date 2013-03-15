@@ -1,4 +1,4 @@
-package wave.talk;
+package com.zhuri.talk;
 
 import java.io.*;
 import java.util.*;
@@ -30,18 +30,18 @@ import android.graphics.drawable.Drawable;
 import android.content.ServiceConnection;
 import android.content.ComponentName;
 import android.os.IBinder;
-import wave.talk.JabberDaemon.XMPPBinder;
+import com.zhuri.talk.JabberDaemon.XMPPBinder;
 
 import android.os.Message;
 import android.os.Handler;
 import org.w3c.dom.*;
-import wave.slot.SlotWait;
-import wave.slot.SlotTimer;
-import wave.slot.SlotSlot;
-import wave.slot.SlotChannel;
-import wave.slot.SlotRunner;
-import wave.util.ShineWrapper;
-import wave.util.MadPlayer;
+import com.zhuri.slot.SlotWait;
+import com.zhuri.slot.SlotTimer;
+import com.zhuri.slot.SlotSlot;
+import com.zhuri.slot.SlotChannel;
+import com.zhuri.slot.SlotRunner;
+import com.zhuri.util.ShineWrapper;
+import com.zhuri.util.MadPlayer;
 import android.util.Base64;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -60,8 +60,8 @@ import java.util.*;
 import java.nio.ByteOrder;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-import wave.talk.protocol.Jabber;
-import wave.talk.STUNPingPong.Negotiatable;
+import com.zhuri.talk.protocol.Jabber;
+import com.zhuri.talk.STUNPingPong.Negotiatable;
 
 public class RecordActivity extends Activity
 	implements OnClickListener, Runnable, Negotiatable
@@ -321,7 +321,7 @@ public class RecordActivity extends Activity
 			domain = addr.substring(0, part2);
 			port = addr.substring(part2 + 1);
 			try {
-				return wave.util.InetUtil.getInetSocketAddress(domain, Integer.parseInt(port));
+				return com.zhuri.util.InetUtil.getInetSocketAddress(domain, Integer.parseInt(port));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

@@ -1,4 +1,4 @@
-package wave.talk;
+package com.zhuri.talk;
 import org.w3c.dom.*;
 
 

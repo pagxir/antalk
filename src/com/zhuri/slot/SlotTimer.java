@@ -1,4 +1,4 @@
-package wave.slot;
+package com.zhuri.slot;
 
 public class SlotTimer {
 	static long _stilltick;

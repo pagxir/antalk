@@ -1,13 +1,13 @@
-package wave.talk;
+package com.zhuri.talk;
 
 import org.w3c.dom.Element;
 import android.content.Intent;
 
-import wave.slot.SlotWait;
-import wave.slot.SlotSlot;
-import wave.talk.JabberDaemon;
-import wave.talk.protocol.Jabber;
-import wave.talk.ProtoPlugcan.ProtoPlugin;
+import com.zhuri.slot.SlotWait;
+import com.zhuri.slot.SlotSlot;
+import com.zhuri.talk.JabberDaemon;
+import com.zhuri.talk.protocol.Jabber;
+import com.zhuri.talk.ProtoPlugcan.ProtoPlugin;
 
 public class VoiceCall extends ProtoPlugin {
 	SlotWait dialWait = new SlotWait(this);

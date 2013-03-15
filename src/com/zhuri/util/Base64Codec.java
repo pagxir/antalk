@@ -1,4 +1,4 @@
-package wave.util;
+package com.zhuri.util;
 
 public class Base64Codec {
 	static final byte[] base64codes = 

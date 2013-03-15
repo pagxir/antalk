@@ -6,9 +6,9 @@
  * All rights reserved. Relased under terms of the
  * Creative Commons' Attribution-NonCommercial-ShareAlike license.
  */
-package wave.ssl;
+package com.zhuri.ssl;
 
-import wave.slot.*;
+import com.zhuri.slot.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;

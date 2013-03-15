@@ -1,4 +1,4 @@
-package wave.util;
+package com.zhuri.util;
 
 public class ShineWrapper {
 	private byte[] shine;

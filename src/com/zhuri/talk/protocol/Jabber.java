@@ -1,7 +1,7 @@
-package wave.talk.protocol;
+package com.zhuri.talk.protocol;
 
-import wave.ssl.*;
-import wave.slot.*;
+import com.zhuri.ssl.*;
+import com.zhuri.slot.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -10,11 +10,11 @@ import javax.net.ssl.*;
 import java.nio.*;
 import org.w3c.dom.*;
 import java.nio.channels.*;
-import wave.talk.PacketCallback;
+import com.zhuri.talk.PacketCallback;
 import java.util.logging.*;
-import wave.talk.protocol.FastXmlVisitor;
-import wave.util.InetUtil;
-import wave.talk.ProtoPlugcan;
+import com.zhuri.talk.protocol.FastXmlVisitor;
+import com.zhuri.util.InetUtil;
+import com.zhuri.talk.ProtoPlugcan;
 
 public class Jabber implements Runnable {
 	public boolean disconnected = false;
@@ -73,7 +73,7 @@ public class Jabber implements Runnable {
 		buffer.get(buf = new byte[buffer.limit()]);
 
 		//data = Base64.encodeToString(buf, 0);
-		data = wave.util.Base64Codec.encode(buf);
+		data = com.zhuri.util.Base64Codec.encode(buf);
 		return auth + data + "</auth>";
 	}
 

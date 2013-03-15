@@ -1,4 +1,4 @@
-package wave.talk;
+package com.zhuri.talk;
 
 import java.io.*;
 import android.text.Editable;
@@ -21,12 +21,12 @@ import android.content.Context;
 import android.os.Message;
 import android.os.Handler;
 import org.w3c.dom.*;
-import wave.slot.SlotWait;
-import wave.slot.SlotRunner;
+import com.zhuri.slot.SlotWait;
+import com.zhuri.slot.SlotRunner;
 import android.util.Base64;
 import android.app.Dialog;
 import android.app.AlertDialog;
-import wave.talk.protocol.Jabber;
+import com.zhuri.talk.protocol.Jabber;
 
 public class ChatDialog extends Dialog implements OnClickListener
 {

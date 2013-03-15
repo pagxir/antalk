@@ -1,17 +1,17 @@
-package wave.talk;
+package com.zhuri.talk;
 
 import java.net.*;
 import java.util.*;
-import wave.slot.SlotTimer;
-import wave.slot.SlotSlot;
-import wave.slot.SlotWait;
-import wave.slot.SlotChannel;
+import com.zhuri.slot.SlotTimer;
+import com.zhuri.slot.SlotSlot;
+import com.zhuri.slot.SlotWait;
+import com.zhuri.slot.SlotChannel;
 import java.nio.ByteOrder;
 import java.nio.ByteBuffer;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
-import wave.util.InetUtil;
+import com.zhuri.util.InetUtil;
 
 public class STUNClient {
 

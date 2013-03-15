@@ -1,11 +1,11 @@
-package wave.slot;
+package com.zhuri.slot;
 
 import java.net.*;
 import java.util.*;
 import java.nio.ByteOrder;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-import wave.util.InetUtil;
+import com.zhuri.util.InetUtil;
 
 public class SRVlookup {
 
