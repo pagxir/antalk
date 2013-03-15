@@ -15,12 +15,12 @@
             </intent-filter>
         </activity>
         <activity
-			android:screenOrientation="portrait"
 			android:name="LoginActivity"
+			android:screenOrientation="portrait"
 			android:label="@string/login"/>
         <activity
-			android:screenOrientation="portrait"
 			android:name="RecordActivity"
+			android:screenOrientation="portrait"
 			android:label="@string/recorder"/>
         <service android:name="TalkCoreService" android:enabled="true"/>
     </application>
