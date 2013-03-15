@@ -30,7 +30,7 @@ import android.graphics.drawable.Drawable;
 import android.content.ServiceConnection;
 import android.content.ComponentName;
 import android.os.IBinder;
-import com.zhuri.talk.JabberDaemon.XMPPBinder;
+import com.zhuri.talk.TalkCoreService.XMPPBinder;
 
 import android.os.Message;
 import android.os.Handler;
@@ -103,7 +103,7 @@ public class RecordActivity extends Activity
 			e.printStackTrace();
 		}
 
-		//bindService(new Intent(this, JabberDaemon.class), connection, BIND_AUTO_CREATE);
+		//bindService(new Intent(this, TalkCoreService.class), connection, BIND_AUTO_CREATE);
 		talker = Jabber.getSticky();
 		recorder = Recorder.create(datagram);
 		connected = false;

@@ -5,7 +5,7 @@ import android.content.Intent;
 
 import com.zhuri.slot.SlotWait;
 import com.zhuri.slot.SlotSlot;
-import com.zhuri.talk.JabberDaemon;
+import com.zhuri.talk.TalkCoreService;
 import com.zhuri.talk.protocol.Jabber;
 import com.zhuri.talk.ProtoPlugcan.ProtoPlugin;
 
@@ -82,7 +82,7 @@ public class VoiceCall extends ProtoPlugin {
 			} else if (voiceMode.equals("ANSWER")) {
 				Intent intent = new Intent("wave.talk.voice.CALL_STATE_CHANGE");
 				slotWait.record(ringWait);
-				JabberDaemon.broadcastIntent(intent);
+				TalkCoreService.broadcastIntent(intent);
 			}
 		}
 	}

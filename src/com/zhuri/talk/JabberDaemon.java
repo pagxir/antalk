@@ -15,9 +15,9 @@ import android.media.MediaPlayer;
 import android.widget.Toast;
 import com.zhuri.talk.protocol.Jabber;
 
-public class JabberDaemon extends Service implements Runnable {
+public class TalkCoreService extends Service implements Runnable {
 	private XMPPBinder binder = new XMPPBinder();
-	private static final String TAG = "JabberDaemon";
+	private static final String TAG = "TalkCoreService";
 
 	/* private Jabber talker; */
 	private Thread bgworker = null;
@@ -25,7 +25,7 @@ public class JabberDaemon extends Service implements Runnable {
 	private boolean selfstoped = true;
 	private SlotWait stophandle = null;
 
-	private static JabberDaemon thisOne = null;
+	private static TalkCoreService thisOne = null;
 	public static void broadcastIntent(Intent intent) {
 		thisOne.sendBroadcast(intent);
 		return;
@@ -119,8 +119,8 @@ public class JabberDaemon extends Service implements Runnable {
 	public class XMPPBinder extends Binder {
 		private Jabber client;
 
-		JabberDaemon getService() {
-			return JabberDaemon.this;
+		TalkCoreService getService() {
+			return TalkCoreService.this;
 		}
 
 		Jabber getClient(String name) {
@@ -164,7 +164,7 @@ public class JabberDaemon extends Service implements Runnable {
 			}
 
 			public Intent doPhoneCalling(String action, String jid) {
-				Intent calling = new Intent(JabberDaemon.this, RecordActivity.class);
+				Intent calling = new Intent(TalkCoreService.this, RecordActivity.class);
 				calling.putExtra("jid", jid);
 				calling.putExtra("name", "unkown");
 				calling.putExtra("action", action);

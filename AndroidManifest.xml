@@ -22,7 +22,7 @@
 			android:screenOrientation="portrait"
 			android:name="RecordActivity"
 			android:label="@string/recorder"/>
-        <service android:name="JabberDaemon" android:enabled="true"/>
+        <service android:name="TalkCoreService" android:enabled="true"/>
     </application>
 	<uses-sdk android:minSdkVersion="3"/>
 </manifest> 

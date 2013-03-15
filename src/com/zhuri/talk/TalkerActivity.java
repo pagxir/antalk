@@ -8,7 +8,7 @@ import com.zhuri.slot.SlotChannel;
 import java.nio.ByteBuffer;
 import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
-import com.zhuri.talk.JabberDaemon.XMPPBinder;
+import com.zhuri.talk.TalkCoreService.XMPPBinder;
 
 import android.os.Bundle;
 import android.content.Context;
@@ -71,7 +71,7 @@ public class TalkerActivity extends Activity
 		setContentView(R.layout.main);
 
 		handle = new Handler();
-		intent = new Intent(this, JabberDaemon.class);
+		intent = new Intent(this, TalkCoreService.class);
 		adapter = new TalkerAdapter(TalkerActivity.this, handle);
 
 		startService(intent);
