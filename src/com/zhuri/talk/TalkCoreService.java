@@ -15,105 +15,79 @@ import android.media.MediaPlayer;
 import android.widget.Toast;
 import com.zhuri.talk.protocol.Jabber;
 
-public class TalkCoreService extends Service implements Runnable {
-	private XMPPBinder binder = new XMPPBinder();
-	private static final String TAG = "TalkCoreService";
+public class TalkCoreService extends Service {
+	private static final String LOG_TAG = "TalkCoreService";
 
-	/* private Jabber talker; */
-	private Thread bgworker = null;
-	private Handler fghandler = null;
-	private boolean selfstoped = true;
-	private SlotWait stophandle = null;
+	private TalkThread mProcessor = null;
+	private XMPPBinder mBinder = new XMPPBinder();
 
-	private static TalkCoreService thisOne = null;
+	private static TalkCoreService mInstance = null;
+
 	public static void broadcastIntent(Intent intent) {
-		thisOne.sendBroadcast(intent);
+		mInstance.sendBroadcast(intent);
 		return;
 	}
 
-	private Runnable stopnow = new Runnable() {
-		public void run() {
-			selfstoped = false;
-			SlotSlot.stop();
-		}
-	};
-
-	
 	@Override
 	public IBinder onBind(Intent intent) {
-		return binder;
-	}
-	
-	@Override
-	public void onCreate() {
-		thisOne = this;
-
-		bgworker = new Thread(this);
-		fghandler = new Handler();
-		stophandle = new SlotWait(stopnow);
-		selfstoped = true;
-		bgworker.start();
-
-		//Toast.makeText(this, "My Service Created", Toast.LENGTH_LONG).show();
-        //Log.d(TAG, "onCreate");
-	}
-
-	private void mainLoop() throws Exception {
-		STUNPingPong pong;
-
-		SlotSlot.init();
-		SlotTimer.init();
-		SlotChannel.init();
-		SlotWait.ipc_init();
-		VoiceCall.init();
-
-		while (SlotSlot.step());
-
-		VoiceCall.fini();
-		SlotWait.ipc_fini();
-		SlotChannel.fini();
-		/* SlotTimer.fini(); */
-		SlotSlot.fini();
-	}
-
-	public void run() {
-		String title = "jabber exited unnormal";
-
-		try {
-			mainLoop();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if (selfstoped) {
-			/* Toast.makeText(this, title, Toast.LENGTH_SHORT).show(); */
-			stopSelf();
-		}
-	}
-
-	@Override
-	public void onDestroy() {
-		//Toast.makeText(this, "My Service onDestroy", Toast.LENGTH_LONG).show();
-        //Log.d(TAG, "onDestroy");
-
-		if (stophandle != null) {
-			stophandle.ipcSchedule();
-			stophandle = null;
-		}
-
-		try {
-			bgworker.join(); 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		thisOne = null;
+		return mBinder;
 	}
 	
 	@Override
 	public void onStart(Intent intent, int startid) {
-		//Toast.makeText(this, "My Service started", Toast.LENGTH_LONG).show();
-        //Log.d(TAG, "onStarted");
+		Log.d(LOG_TAG, "TalkCoreService started");
+	}
+
+	@Override
+	public void onCreate() {
+		mInstance = this;
+
+		mProcessor = new TalkThread();
+		mProcessor.start();
+
+		Log.d(LOG_TAG, "TalkCoreService created");
+	}
+
+	@Override
+	public void onDestroy() {
+		Log.d(LOG_TAG, "TalkCoreService destroy");
+
+		mProcessor.quit();
+	}
+
+	class TalkThread extends Thread {
+
+		void loop() throws Exception {
+			STUNPingPong pong;
+
+			SlotSlot.init();
+			SlotTimer.init();
+			SlotChannel.init();
+			SlotWait.ipc_init();
+			VoiceCall.init();
+
+			while (SlotSlot.step());
+
+			VoiceCall.fini();
+			SlotWait.ipc_fini();
+			SlotChannel.fini();
+			/* SlotTimer.fini(); */
+			SlotSlot.fini();
+		}
+
+		public void run() {
+			String title = "jabber exited unnormal";
+
+			try {
+				loop();
+			} catch (Exception e) {
+				e.printStackTrace();
+				stopSelf();
+			}
+		}
+
+		public void quit() {
+		}
 	}
 
 	public class XMPPBinder extends Binder {
@@ -144,7 +118,7 @@ public class TalkCoreService extends Service implements Runnable {
 				client = _client;
 				idling = false;
 
-				fghandler.post(this);
+				/* fghandler.post(this); */
 				while (!idling) {
 					try {
 						this.wait();
