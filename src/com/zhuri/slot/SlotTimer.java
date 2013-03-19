@@ -95,7 +95,13 @@ public class SlotTimer {
 		return;
 	}
 
-	static SlotWait _timer_scan;
+	static SlotWait _timer_scan = new SlotWait() {
+		public void invoke() {
+			SlotTimer.invoke();
+			return;
+		}
+	};
+
 	public static void init() {
 		long tick = System.currentTimeMillis();
 		_stilltick = tick;
@@ -108,15 +114,9 @@ public class SlotTimer {
 
 		for (int i = 0; i < 50; i++)
 			_microtimers[i] = new SlotSlot();
+
 		for (int i = 0; i < 60; i++)
 			_macrotimers[i] = new SlotSlot();
-
-		_timer_scan = new SlotWait() {
-			public void invoke() {
-				SlotTimer.invoke();
-				return;
-			}
-		};
 
 		_timer_scan.flags &= ~WT_EXTERNAL;
 		_timer_scan.flags |= WT_WAITSCAN;

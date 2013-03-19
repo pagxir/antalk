@@ -58,7 +58,6 @@ public class TalkCoreService extends Service {
 	class TalkThread extends Thread {
 
 		void loop() throws Exception {
-			STUNPingPong pong;
 
 			SlotSlot.init();
 			SlotTimer.init();
@@ -87,6 +86,7 @@ public class TalkCoreService extends Service {
 		}
 
 		public void quit() {
+			this.join();
 		}
 	}
 

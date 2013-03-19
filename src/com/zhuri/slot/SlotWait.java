@@ -101,49 +101,6 @@ public class SlotWait {
 		return;
 	}
 
-	public boolean ipcSchedule() {
-		boolean error = false;
-
-		synchronized(_ipc_slot) {
-			if (_aborted)
-				throw new RuntimeException(_exception);
-
-			if (!this.active()) {
-				_ipc_slot.record(this);
-				error = true;
-			}
-			SlotChannel.ipcWakeup();
-		}
-
-		return error;
-	}
-
-	static SlotSlot _ipc_slot;
-	static SlotWait _ipc_selscan;
-	public static void ipc_init() {
-		_ipc_slot = new SlotSlot();
-		_ipc_selscan = new SlotWait() {
-			public void invoke() {
-				synchronized(_ipc_slot) {
-					SlotWait next;
-					SlotWait header = _ipc_slot.getHeader();
-					while (header.next != null) {
-						next = header.next;
-						next.cancel();
-						next.schedule();
-					}
-				}
-			}
-		};
-
-		_ipc_selscan.flags &= ~WT_EXTERNAL;
-		_ipc_selscan.flags |= WT_WAITSCAN;
-		_ipc_selscan.schedule();
-	}
-
-	public static void ipc_fini() {
-		_ipc_selscan.clean();
-	}
 
 	static int WT_CLEANING = 0x00000010;
 	static int WT_WAITSCAN = 0x00000008;

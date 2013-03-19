@@ -1,28 +1,42 @@
 package com.zhuri.slot;
 
 public class SlotSlot {
-	SlotWait header = new SlotWait();
+	static SlotWait readyqueue;
+	static SlotWait readytailer;
+	static SlotSlot stopslot =  new SlotSlot();
 
-	public SlotSlot() {
+	static int waitrescan = 0;
+	static boolean nonblock = false;
+	static boolean requestquited = false;
+
+	static int WT_WAITSCAN = 0x00000008;
+	static int WT_EXTERNAL = 0x00000004;
+	static int WT_COMPLETE = 0x00000002;
+	static int WT_INACTIVE = 0x00000001;
+
+	public static void atstop(SlotWait wait) {
+		stopslot.record(wait);
 	}
 
-	public SlotWait getHeader() {
-		return header;
+	public static void remove(SlotWait wait) {
+		if (wait == readytailer)
+			readytailer = wait.prev;
 	}
 
-	public boolean isEmpty() {
-		return header.next == null;
+	public static void stop() {
+		stopslot.wakeup();
+		requestquited = true;
 	}
 
-	public void record(SlotWait wait) {
-		assert(WT_INACTIVE == (wait.flags & WT_INACTIVE));
+	public static void init() throws Exception {
+		readyqueue = new SlotWait();
+		readytailer = readyqueue;
+		requestquited = false;
+	}
 
-		wait.flags &= ~WT_INACTIVE;
-		wait.next = header.next;
-		if (wait.next != null)
-			wait.next.prev = wait;
-		wait.prev = header;
-		header.next = wait;
+	public static void fini() throws Exception {
+		readytailer = null;
+		readyqueue = null;
 	}
 
 	public static void schedule(SlotWait wait) {
@@ -40,41 +54,6 @@ public class SlotSlot {
 		readytailer = wait;
 	}
 
-	public static void remove(SlotWait wait) {
-		if (wait == readytailer)
-			readytailer = wait.prev;
-	}
-
-	public void wakeup() {
-		SlotWait wait;
-
-		while (header.next != null) {
-			wait = header.next;
-			wait.cancel();
-			schedule(wait);
-		}
-	}
-
-	static SlotSlot stopslot =  new SlotSlot();
-	public static void atstop(SlotWait wait) {
-		stopslot.record(wait);
-	}
-
-	public static void stop() {
-		stopslot.wakeup();
-		requestquited = true;
-	}
-
-	static int WT_WAITSCAN = 0x00000008;
-	static int WT_EXTERNAL = 0x00000004;
-	static int WT_COMPLETE = 0x00000002;
-	static int WT_INACTIVE = 0x00000001;
-
-	static SlotWait readyqueue;
-	static SlotWait readytailer;
-	static int waitrescan = 0;
-	static boolean nonblock = false;
-	static boolean requestquited = false;
 	public static boolean step() throws Exception {
 		SlotWait iter = null;
 		SlotWait marker = new SlotWait();
@@ -115,15 +94,41 @@ public class SlotSlot {
 		return true;
 	}
 
-	public static void init() throws Exception {
-		readyqueue = new SlotWait();
-		readytailer = readyqueue;
-		requestquited = false;
+	private SlotWait header = new SlotWait();
+
+	public SlotSlot() {
 	}
 
-	public static void fini() throws Exception {
-		readytailer = null;
-		readyqueue = null;
+	public SlotWait getHeader() {
+		return header;
+	}
+
+	public boolean isEmpty() {
+		return header.next == null;
+	}
+
+	public void record(SlotWait wait) {
+
+		if (WT_INACTIVE != (wait.flags & WT_INACTIVE)) {
+			throw new IllegalStateException("SlotSlot::record wait state is not WT_INACTIVE");
+		}
+
+		wait.flags &= ~WT_INACTIVE;
+		wait.next = header.next;
+		if (wait.next != null)
+			wait.next.prev = wait;
+		wait.prev = header;
+		header.next = wait;
+	}
+
+	public void wakeup() {
+		SlotWait wait;
+
+		while (header.next != null) {
+			wait = header.next;
+			wait.cancel();
+			schedule(wait);
+		}
 	}
 }
 
