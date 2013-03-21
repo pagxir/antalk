@@ -1,9 +1,6 @@
 package com.zhuri.talk;
 
-import com.zhuri.slot.SlotSlot;
-import com.zhuri.slot.SlotWait;
-import com.zhuri.slot.SlotTimer;
-import com.zhuri.slot.SlotChannel;
+import com.zhuri.slot.*;
 
 import android.util.Log;
 import android.os.Handler;
@@ -60,17 +57,15 @@ public class TalkCoreService extends Service {
 		void loop() throws Exception {
 
 			SlotSlot.init();
+			SlotAsync.init();
 			SlotTimer.init();
 			SlotChannel.init();
-			SlotWait.ipc_init();
-			VoiceCall.init();
 
 			while (SlotSlot.step());
 
-			VoiceCall.fini();
-			SlotWait.ipc_fini();
 			SlotChannel.fini();
 			/* SlotTimer.fini(); */
+			SlotAsync.fini();
 			SlotSlot.fini();
 		}
 
@@ -86,7 +81,11 @@ public class TalkCoreService extends Service {
 		}
 
 		public void quit() {
-			this.join();
+			try {
+				this.join();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -138,11 +137,14 @@ public class TalkCoreService extends Service {
 			}
 
 			public Intent doPhoneCalling(String action, String jid) {
+				return null;
+				/*
 				Intent calling = new Intent(TalkCoreService.this, RecordActivity.class);
 				calling.putExtra("jid", jid);
 				calling.putExtra("name", "unkown");
 				calling.putExtra("action", action);
 				return calling;
+				*/
 			}
 	}
 }

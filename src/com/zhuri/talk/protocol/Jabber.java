@@ -120,10 +120,10 @@ public class Jabber implements Runnable {
 
 	private int bgflags = 0;
 	private int uiflags = 0;
-	private SlotWait uiWait = new SlotWait(this);
 	private SlotWait bgWait = new SlotWait(this);
 	private SlotWait bindWait = new SlotWait(this);
 	private SlotWait sessionWait = new SlotWait(this);
+	private SlotAsync uiAsync = new SlotAsync(this);
 
 	public static final int SET = 0x01;
 	public static final int GET = 0x02;
@@ -172,7 +172,7 @@ public class Jabber implements Runnable {
 
 	boolean stateChanged() {
 		logger.log(Level.INFO, "stateChanged " + uiflags + " " + bgflags);
-		uiWait.ipcSchedule();
+		uiAsync.send();
 		return true;
 	}
 
@@ -451,7 +451,7 @@ public class Jabber implements Runnable {
 			readWait.clean();
 			bindWait.clean();
 			dnsWait.clean();
-			uiWait.clean();
+			uiAsync.clean();
 			bgWait.clean();
 			timeo.clean();
 		}

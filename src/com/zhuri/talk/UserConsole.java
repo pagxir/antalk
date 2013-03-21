@@ -140,7 +140,7 @@ public class UserConsole implements Runnable, PacketCallback {
 
 	public void sendCommand(String text) {
 		this.line = text;
-		this.command.ipcSchedule();
+		//this.command.ipcSchedule();
 		return;
 	}
 

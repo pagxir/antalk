@@ -251,8 +251,8 @@ public class TalkerActivity extends Activity
 
 		switch (item.getItemId()) {
 			case 0:
-				VoiceCall.dial(talker, adapter.getCurrentJID());
 				/*
+				VoiceCall.dial(talker, adapter.getCurrentJID());
 				if (adapter.isCallable()) {
 					Intent calling = adapter.doPhoneCalling("calling", null);
 					Jabber.setSticky(talker);
@@ -451,12 +451,16 @@ public class TalkerActivity extends Activity
 		}
 
 		public Intent doPhoneCalling(String action, String jid) {
+			/*
 			Intent calling = new Intent(activity, RecordActivity.class);
 			jid = (jid == null? peer: jid);
 			calling.putExtra("jid", jid);
 			calling.putExtra("name", getNickName(jid));
 			calling.putExtra("action", action);
 			return calling;
+			*/
+
+			return null;
 		}
 
 		public TalkerAdapter(Activity activity, Handler handle) {
@@ -695,7 +699,7 @@ public class TalkerActivity extends Activity
 
 		public void destroy() {
 			closed = true;
-			cowrapper.ipcSchedule();
+			//cowrapper.ipcSchedule();
 			return;
 		}
 	}

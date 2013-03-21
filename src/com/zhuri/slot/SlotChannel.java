@@ -7,7 +7,7 @@ public class SlotChannel {
 
 	static void invoke(long timeout) throws Exception {
 		int count;
-		SlotChannel channel;
+		InnerChannel channel;
 
 		count = timeout > 0? selector.select(timeout): selector.selectNow();
 		if (count > 0) {
@@ -60,112 +60,141 @@ public class SlotChannel {
 		mInnerChannel = new InnerChannel();
 	}
 
+	public boolean wantIn(SlotWait wait) {
+		return mInnerChannel.wantIn(wait);
+	}
+
+	public boolean wantOut(SlotWait wait) {
+		return mInnerChannel.wantOut(wait);
+	}
+
+	public void attach(DatagramChannel channel) {
+		mInnerChannel.attach(channel);
+	}
+
+	public void attach(SocketChannel channel) {
+		mInnerChannel.attach(channel);
+	}
+
+	public void detach() {
+		mInnerChannel.detach();
+	}
+
 	@Override
 	public void finalize() {
 		mInnerChannel.detach();
 	}
+}
 
-	static class InnerChannel {
-		int mFlags;
-		SelectionKey mSlotKey;
+class InnerChannel {
+	int mFlags;
+	SelectionKey mSlotKey;
 
-		SlotSlot mSlotIn = new SlotSlot();
-		SlotSlot mSlotOut = new SlotSlot();
+	SlotSlot mSlotIn = new SlotSlot();
+	SlotSlot mSlotOut = new SlotSlot();
 
-		public InnerChannel() {
-			mFlags = SelectionKey.OP_CONNECT |
-				SelectionKey.OP_WRITE | SelectionKey.OP_READ;
-			mSlotKey = null;
-		}
+	InnerChannel() {
+		mFlags = SelectionKey.OP_CONNECT |
+			SelectionKey.OP_WRITE | SelectionKey.OP_READ;
+		mSlotKey = null;
+	}
 
-		public void attach(DatagramChannel channel) throws Exception {
+	void attach(DatagramChannel channel) {
 
-			/* channel or selector should not be null. */
-			if (channel == null || selector == null)
-				throw new Exception("SlotChannel.attach udp failure");
+		/* channel or selector should not be null. */
+		if (channel == null || SlotChannel.selector == null)
+			throw new IllegalArgumentException("SlotChannel.attach udp failure");
 
+		try {
 			mFlags = SelectionKey.OP_READ;
 			channel.configureBlocking(false);
-			mSlotKey = channel.register(mSelector, mFlags, this);
+			mSlotKey = channel.register(SlotChannel.selector, mFlags, this);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IllegalArgumentException("SlotChannel.attach udp failure");
 		}
+	}
 
-		public void attach(SocketChannel channel) throws Exception {
+	void attach(SocketChannel channel) {
 
-			/* channel or selector should not be null. */
-			if (channel == null || selector == null)
-				throw new Exception("SlotChannel.attach tcp failure");
+		/* channel or selector should not be null. */
+		if (channel == null || SlotChannel.selector == null)
+			throw new IllegalArgumentException("SlotChannel.attach tcp failure");
 
+		try {
 			channel.configureBlocking(false);
-			mSlotKey = channel.register(selector, mFlags, this);
+			mSlotKey = channel.register(SlotChannel.selector, mFlags, this);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IllegalArgumentException("SlotChannel.attach tcp failure");
+		}
+	}
+
+	void detach() {
+		if (mSlotKey != null)
+			mSlotKey.cancel();
+		mSlotKey = null;
+		mSlotOut = null;
+		mSlotIn = null;
+	}
+
+	boolean wantIn(SlotWait wait) {
+		/* TODO: assert wait not active or is in the slotIn. */
+
+		wait.cancel();
+		mSlotIn.record(wait);
+		/* if (SelectionKey.OP_READ != (mFlags & SelectionKey.OP_READ)) */ {
+			mFlags |= SelectionKey.OP_READ;
+			mSlotKey.interestOps(mFlags);
 		}
 
-		public void detach() {
-			if (mSlotKey != null)
-				mSlotKey.cancel();
-			mSlotKey = null;
-			mSlotOut = null;
-			mSlotIn = null;
+		return false;
+	}
+
+	boolean wantOut(SlotWait wait) {
+		/* TODO: assert wait not active or is in the slotOut. */
+
+		wait.cancel();
+		mSlotOut.record(wait);
+		if (SelectionKey.OP_WRITE != (mFlags & SelectionKey.OP_WRITE)) {
+			mFlags |= SelectionKey.OP_WRITE;
+			mSlotKey.interestOps(mFlags);
 		}
 
-		public boolean wantIn(SlotWait wait) {
-			/* TODO: assert wait not active or is in the slotIn. */
+		return false;
+	}
 
-			wait.cancel();
-			slotIn.record(wait);
-			/* if (SelectionKey.OP_READ != (mFlags & SelectionKey.OP_READ)) */ {
-				mFlags |= SelectionKey.OP_READ;
-				mSlotKey.interestOps(mFlags);
-			}
+	void wakeup() {
+		int wakeup_flags = 0;
+		int write_flags  = SelectionKey.OP_CONNECT| SelectionKey.OP_WRITE;
 
-			return false;
+		int oldflags = mFlags;
+		SelectionKey key = mSlotKey;
+
+		if (key.isConnectable() || key.isWritable()) {
+			if (mSlotOut.isEmpty())
+				mFlags &= ~write_flags;
+			wakeup_flags |= 0x1;
 		}
 
-		public boolean wantOut(SlotWait wait) {
-			/* TODO: assert wait not active or is in the slotOut. */
-
-			wait.cancel();
-			slotOut.record(wait);
-			if (SelectionKey.OP_WRITE != (mFlags & SelectionKey.OP_WRITE)) {
-				mFlags |= SelectionKey.OP_WRITE;
-				mSlotKey.interestOps(mFlags);
-			}
-
-			return false;
+		if (key.isReadable()) {
+			if (mSlotIn.isEmpty())
+				mFlags &= ~SelectionKey.OP_READ;
+			wakeup_flags |= 0x2;
 		}
 
-		void wakeup() {
-			int wakeup_flags = 0;
-			int write_flags  = SelectionKey.OP_CONNECT| SelectionKey.OP_WRITE;
+		if (oldflags != mFlags) {
+			key.interestOps(mFlags);
+		}
 
-			int oldflags = mFlags;
-			SelectionKey key = mSlotKey;
+		if (!mSlotIn.isEmpty() &&
+				(wakeup_flags & 0x2) > 0) {
+			mSlotIn.wakeup();
+		}
 
-			if (key.isConnectable() || key.isWritable()) {
-				if (slotOut.isEmpty())
-					mFlags &= ~write_flags;
-				wakeup_flags |= 0x1;
-			}
-
-			if (key.isReadable()) {
-				if (slotIn.isEmpty())
-					mFlags &= ~SelectionKey.OP_READ;
-				wakeup_flags |= 0x2;
-			}
-
-			if (oldflags != mFlags) {
-				key.interestOps(mFlags);
-			}
-
-			if (!mSlotIn.isEmpty() &&
-					(wakeup_flags & 0x2) > 0) {
-				mSlotIn.wakeup();
-			}
-
-			if (!mSlotOut.isEmpty() &&
-					(wakeup_flags & 0x1) > 0) {
-				mSlotOut.wakeup();
-			}
+		if (!mSlotOut.isEmpty() &&
+				(wakeup_flags & 0x1) > 0) {
+			mSlotOut.wakeup();
 		}
 	}
 }
-
