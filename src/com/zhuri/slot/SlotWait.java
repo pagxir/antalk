@@ -1,46 +1,102 @@
 package com.zhuri.slot;
 
 public class SlotWait {
-	public int flags;
-	public SlotWait next;
-	public SlotWait prev;
-
-	public long lState;
-	public Object result;
-	public Object oState;
-	public Object uState;
-	public Runnable callback;
+	InnerWait mInnerWait;
 
 	public SlotWait() {
+
+	}
+
+	public SlotWait(Object u) {
+
+	}
+
+	public void cancel() {
+		mInnerWait.cancel();
+	}
+
+	public void clear() {
+		mInnerWait.clear();
+	}
+
+	public void clean() {
+		mInnerWait.clean();
+	}
+
+	public boolean active() {
+		return mInnerWait.active();
+	}
+
+	public boolean started() {
+		return mInnerWait.started();
+	}
+
+	public boolean completed() {
+		return mInnerWait.completed();
+	}
+
+	public void schedule() {
+		SlotSlot.schedule(mInnerWait);
+	}
+
+	public Object result() {
+		return mInnerWait.result;
+	}
+
+	public void setResult(Object result) {
+		mInnerWait.result = result;
+	}
+
+	public long lState() {
+		return mInnerWait.lState;
+	}
+
+	public void setlState(long state) {
+		mInnerWait.lState = state;
+	}
+}
+
+class InnerWait {
+	int flags;
+	InnerWait next;
+	InnerWait prev;
+
+	long lState;
+	Object result;
+	private Object oState;
+	private Object uState;
+	private Runnable callback;
+
+	public InnerWait() {
 		this.flags = (WT_INACTIVE| WT_EXTERNAL);
 		this.next = null;
 		this.callback = new Runnable() {
 			public void run() {
-				System.out.println("SlotWait()");
+				System.out.println("InnerWait()");
 				throw new RuntimeException("");
 			}
 		};
 	}
 
-	public SlotWait(Object state) {
+	public InnerWait(Object state) {
 		this.flags = (WT_INACTIVE| WT_EXTERNAL);
 		this.next = null;
 		this.uState = state;
 		this.callback = new Runnable() {
 			public void run() {
-				System.out.println("SlotWait(Object state)");
+				System.out.println("InnerWait(Object state)");
 			}
 		};
 	}
 
-	public SlotWait(Runnable call) {
+	void schedule() {
+		SlotSlot.schedule(this);
+	}
+
+	public InnerWait(Runnable call) {
 		this.flags = (WT_INACTIVE| WT_EXTERNAL);
 		this.callback = call;
 		this.next = null;
-	}
-
-	public void schedule() {
-		SlotSlot.schedule(this);
 	}
 
 	public void invoke() {
@@ -100,7 +156,6 @@ public class SlotWait {
 		_aborted = true;
 		return;
 	}
-
 
 	static int WT_CLEANING = 0x00000010;
 	static int WT_WAITSCAN = 0x00000008;

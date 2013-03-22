@@ -410,7 +410,7 @@ public class TalkerActivity extends Activity
 		private SlotWait avatarWait = new SlotWait() {
 			String title;
 			public void invoke() {
-				Element e = (Element)result;
+				Element e = (Element)result();
 				FastXmlVisitor visitor = new FastXmlVisitor(e);
 				title = visitor.getElement("vCard")
 					.getElement("PHOTO").getElement("BINVAL").getValue();
@@ -628,7 +628,7 @@ public class TalkerActivity extends Activity
 
 		private SlotWait rosterWait = new SlotWait() {
 			public void invoke() {
-				Element packet = (Element)result;
+				Element packet = (Element)result();
 				rosterCollection.clear();
 				NodeList nodelist = packet.getElementsByTagName("item");
 				for (int i = 0; i < nodelist.getLength(); i++) {

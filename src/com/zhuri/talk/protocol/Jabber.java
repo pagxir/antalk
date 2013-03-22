@@ -341,7 +341,7 @@ public class Jabber implements Runnable {
 
 		if (matchFlags(WF_PRESENCE, WF_QUERY1ST) && 
 				bindWait.completed() && sessionWait.completed()) {
-			parseSelfJid((Element)bindWait.result);
+			parseSelfJid((Element)bindWait.result());
 			stateCallback.run();
 			putPacket("<presence/>");
 			bgflags |= WF_PRESENCE;
@@ -491,7 +491,7 @@ public class Jabber implements Runnable {
 				putPacket(title);
 				if (wait == null)
 					return true;
-				wait.lState = queryID;
+				wait.setlState(queryID);
 				synchronized(querySlot) { querySlot.record(wait); queryID++; }
 			} catch (Exception e) {
 				aborted(e);
@@ -538,7 +538,6 @@ public class Jabber implements Runnable {
 	void finishQuery(Element packet) {
 		String id = packet.getAttribute("id");
 		String type = packet.getAttribute("type");
-		SlotWait wait = querySlot.getHeader();
 
 		assert(packet.getTagName().equals("iq"));
 		if (type.equals("set") || type.equals("get")) {
@@ -548,17 +547,20 @@ public class Jabber implements Runnable {
 			return;
 		}
 
+/*
+		SlotWait wait = querySlot.getHeader();
 		long li = Integer.parseInt(id);
 		while (wait.next != null) {
 			SlotWait cur = wait.next;
-			if (cur.lState == li) {
-				cur.result = packet;
+			if (cur.lState() == li) {
+				cur.setResult(packet);
 				cur.cancel();
 				cur.schedule();
 				break;
 			}
 			wait = wait.next;
 		}
+		*/
 	}
 
 	static String lastStatus = "ok";

@@ -150,7 +150,7 @@ public class STUNPingPong extends ProtoPlugin {
 				if (initiator.equals(talk.getSelfJid())) {
 					String type = "result";
 					String typeMatch = "";
-					result = (Element)wait.result;
+					result = (Element)wait.result();
 					typeMatch = visitor.useElement(result).getAttribute("type");
 					if (typeMatch.equals("error"))
 						notifyMessage = "peer reject calling";

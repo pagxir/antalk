@@ -14,7 +14,7 @@ public class SlotTimer {
 
 	public static void invoke() {
 		int wheel;
-		SlotWait event, nextEvent;
+		InnerWait event, nextEvent;
 		long tick = System.currentTimeMillis();
 
 		for ( ; ; ) {
@@ -32,7 +32,7 @@ public class SlotTimer {
 			_macrotick += 1000;
 			_macrowheel++;
 			wheel = (int)(_macrowheel % 60);
-			SlotWait wait = _macrotimers[wheel].getHeader();
+			InnerWait wait = _macrotimers[wheel].getHeader();
 			while (wait.next != null) {
 				event = wait.next;
 				if ((long)(event.lState - tick) < 20) {
@@ -63,6 +63,10 @@ public class SlotTimer {
 	}
 
 	public static void reset(SlotWait wait, long millisec) {
+		reset(wait.mInnerWait, millisec);
+	}
+
+	public static void reset(InnerWait wait, long millisec) {
 		int wheel;
 		long millisec1;
 		long microwheel, macrowheel;
@@ -95,7 +99,7 @@ public class SlotTimer {
 		return;
 	}
 
-	static SlotWait _timer_scan = new SlotWait() {
+	static InnerWait _timer_scan = new InnerWait() {
 		public void invoke() {
 			SlotTimer.invoke();
 			return;

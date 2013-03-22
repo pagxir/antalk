@@ -1,8 +1,8 @@
 package com.zhuri.slot;
 
 public class SlotSlot {
-	static SlotWait readyqueue;
-	static SlotWait readytailer;
+	static InnerWait readyqueue;
+	static InnerWait readytailer;
 	static SlotSlot stopslot =  new SlotSlot();
 
 	static int waitrescan = 0;
@@ -15,10 +15,10 @@ public class SlotSlot {
 	static int WT_INACTIVE = 0x00000001;
 
 	public static void atstop(SlotWait wait) {
-		stopslot.record(wait);
+		stopslot.record(wait.mInnerWait);
 	}
 
-	public static void remove(SlotWait wait) {
+	public static void remove(InnerWait wait) {
 		if (wait == readytailer)
 			readytailer = wait.prev;
 	}
@@ -29,7 +29,7 @@ public class SlotSlot {
 	}
 
 	public static void init() throws Exception {
-		readyqueue = new SlotWait();
+		readyqueue = new InnerWait();
 		readytailer = readyqueue;
 		requestquited = false;
 	}
@@ -39,7 +39,7 @@ public class SlotSlot {
 		readyqueue = null;
 	}
 
-	public static void schedule(SlotWait wait) {
+	public static void schedule(InnerWait wait) {
 		int flags;
 
 		flags = wait.flags;
@@ -55,8 +55,8 @@ public class SlotSlot {
 	}
 
 	public static boolean step() throws Exception {
-		SlotWait iter = null;
-		SlotWait marker = new SlotWait();
+		InnerWait iter = null;
+		InnerWait marker = new InnerWait();
 		marker.flags &= ~WT_EXTERNAL;
 
 		waitrescan = 0;
@@ -94,12 +94,12 @@ public class SlotSlot {
 		return true;
 	}
 
-	private SlotWait header = new SlotWait();
+	private InnerWait header = new InnerWait();
 
 	public SlotSlot() {
 	}
 
-	public SlotWait getHeader() {
+	public InnerWait getHeader() {
 		return header;
 	}
 
@@ -108,6 +108,10 @@ public class SlotSlot {
 	}
 
 	public void record(SlotWait wait) {
+		record(wait.mInnerWait);
+	}
+
+	void record(InnerWait wait) {
 
 		if (WT_INACTIVE != (wait.flags & WT_INACTIVE)) {
 			throw new IllegalStateException("SlotSlot::record wait state is not WT_INACTIVE");
@@ -122,12 +126,22 @@ public class SlotSlot {
 	}
 
 	public void wakeup() {
-		SlotWait wait;
+		InnerWait wait;
 
 		while (header.next != null) {
 			wait = header.next;
 			wait.cancel();
 			schedule(wait);
+		}
+	}
+
+	@Override
+	public void finalize() {
+		InnerWait wait;
+
+		while (header.next != null) {
+			wait = header.next;
+			wait.cancel();
 		}
 	}
 }

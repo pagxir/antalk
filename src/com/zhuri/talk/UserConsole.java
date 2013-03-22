@@ -20,7 +20,7 @@ public class UserConsole implements Runnable, PacketCallback {
 
 	SlotWait wait = new SlotWait() {
 		public void invoke() {
-			printRoster((Element)result);
+			printRoster((Element)result());
 		}
 	};
 

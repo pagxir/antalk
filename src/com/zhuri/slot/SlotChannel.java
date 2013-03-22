@@ -20,10 +20,9 @@ public class SlotChannel {
 
 			selector.selectedKeys().clear();
 		}
-
 	}
 
-	static SlotWait _channel_scan = new SlotWait() {
+	static InnerWait _channel_scan = new InnerWait() {
 		public void invoke() {
 			try {
 				SlotChannel.invoke(0);
@@ -61,11 +60,11 @@ public class SlotChannel {
 	}
 
 	public boolean wantIn(SlotWait wait) {
-		return mInnerChannel.wantIn(wait);
+		return mInnerChannel.wantIn(wait.mInnerWait);
 	}
 
 	public boolean wantOut(SlotWait wait) {
-		return mInnerChannel.wantOut(wait);
+		return mInnerChannel.wantOut(wait.mInnerWait);
 	}
 
 	public void attach(DatagramChannel channel) {
@@ -138,7 +137,7 @@ class InnerChannel {
 		mSlotIn = null;
 	}
 
-	boolean wantIn(SlotWait wait) {
+	boolean wantIn(InnerWait wait) {
 		/* TODO: assert wait not active or is in the slotIn. */
 
 		wait.cancel();
@@ -151,7 +150,7 @@ class InnerChannel {
 		return false;
 	}
 
-	boolean wantOut(SlotWait wait) {
+	boolean wantOut(InnerWait wait) {
 		/* TODO: assert wait not active or is in the slotOut. */
 
 		wait.cancel();
