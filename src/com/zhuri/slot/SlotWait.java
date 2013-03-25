@@ -4,11 +4,11 @@ public class SlotWait {
 	InnerWait mInnerWait;
 
 	public SlotWait() {
-
+		mInnerWait = new InnerWait();
 	}
 
 	public SlotWait(Object u) {
-
+		mInnerWait = new InnerWait(u);
 	}
 
 	public void cancel() {
@@ -47,12 +47,8 @@ public class SlotWait {
 		mInnerWait.result = result;
 	}
 
-	public long lState() {
-		return mInnerWait.lState;
-	}
-
-	public void setlState(long state) {
-		mInnerWait.lState = state;
+	public void finalize() {
+		mInnerWait.clean();
 	}
 }
 
@@ -61,10 +57,7 @@ class InnerWait {
 	InnerWait next;
 	InnerWait prev;
 
-	long lState;
 	Object result;
-	private Object oState;
-	private Object uState;
 	private Runnable callback;
 
 	public InnerWait() {
@@ -81,7 +74,6 @@ class InnerWait {
 	public InnerWait(Object state) {
 		this.flags = (WT_INACTIVE| WT_EXTERNAL);
 		this.next = null;
-		this.uState = state;
 		this.callback = new Runnable() {
 			public void run() {
 				System.out.println("InnerWait(Object state)");
