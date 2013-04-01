@@ -29,6 +29,19 @@ public class SlotThread {
 	static long _macrowheel;
 	static Slot[] _macrotimers = new Slot[60];
 
+	public static void Init() {
+		try {
+			SlotThread.slInit();
+			SlotThread.chInit();
+			SlotThread.tmInit();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void Finit() {
+	}
+
 	static void tmInvoke() {
 		int wheel;
 		Timer tNow, tNext;
@@ -45,7 +58,7 @@ public class SlotThread {
 			_macrotick += 1000;
 			_macrowheel++;
 			wheel = (int)(_macrowheel % 60);
-			Timer timer = (Timer)_macrotimers[wheel].getHeader();
+			Wait timer = _macrotimers[wheel].getHeader();
 			while (timer.next != null) {
 				tNow = (Timer)timer.next;
 				if ((long)(tNow.lState - tick) < 20) {
@@ -203,7 +216,7 @@ public class SlotThread {
 						waitrescan = 0;
 						return false;
 					}
-					/* SlotChannel.invoke(50); */
+					chInvoke(50);
 					tmInvoke();
 				}
 				iter.schedule();

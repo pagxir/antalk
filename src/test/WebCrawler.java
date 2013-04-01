@@ -53,13 +53,19 @@ public class WebCrawler {
 		socketChannel = SocketChannel.open();
 
 		mSlotChannel.attach(socketChannel);
-
-
 	}
+
+	SlotTimer mTimer = new SlotTimer() {
+		public void invoke() {
+			System.out.println("SlotTimer.invoke");
+			reset(3000);
+		}
+	};
 
 	public void start() {
 		InetAddress address;
 
+		mTimer.reset(100);
 		try {
 			mSlotChannel.wantIn(mReadBlock);
 			mSlotChannel.wantOut(mWriteBlock);
