@@ -39,6 +39,22 @@ public class SlotThread {
 		}
 	}
 
+	public boolean quited = false;
+	public static void quit() {
+		quited = true;
+		if (selector != null)
+			selector.wakeup()
+		return;
+	}
+
+	public boolean signaled = false;
+	public static void signal() {
+		signaled = true;
+		if (selector != null)
+			selector.wakeup()
+		return;
+	}
+
 	public static void Finit() {
 	}
 
@@ -526,6 +542,7 @@ public class SlotThread {
 	}
 
 	static class Async extends Wait {
+		boolean signaled = false;
 
 	}
 
