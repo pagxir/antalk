@@ -39,19 +39,19 @@ public class SlotThread {
 		}
 	}
 
-	public boolean quited = false;
+	static boolean quited = false;
 	public static void quit() {
 		quited = true;
 		if (selector != null)
-			selector.wakeup()
+			selector.wakeup();
 		return;
 	}
 
-	public boolean signaled = false;
+	static boolean signaled = false;
 	public static void signal() {
 		signaled = true;
 		if (selector != null)
-			selector.wakeup()
+			selector.wakeup();
 		return;
 	}
 

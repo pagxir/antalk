@@ -8,7 +8,6 @@
  */
 package com.zhuri.ssl;
 
-import com.zhuri.slot.*;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
@@ -24,10 +23,12 @@ public class SSLChannelFactory {
 
 
 	public static SSLContext createSSLContext(boolean clientMode) throws Exception {
-		//SSLContext sslContext = SSLContext.getDefault();
-		SSLContext sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(null, null, null);
-		//sslContext.init(null, new TrustManager[]{new EasyX509TrustManager(null)}, null);
+		SSLContext sslContext;
+		/*
+		sslContext = SSLContext.getDefault();
+		*/
+		sslContext = SSLContext.getInstance("TLS");
+		sslContext.init(null, new TrustManager[] {new EasyX509TrustManager(null)}, null);
 		return sslContext;
 	}
 
@@ -36,9 +37,11 @@ public class SSLChannelFactory {
 		sslContext = createSSLContext(clientMode);
 	}
 
+/*
 	public SSLChannel createChannel(SlotChannel slot, SocketChannel sc) throws Exception {
 		SSLEngine engine = sslContext.createSSLEngine();
 		engine.setUseClientMode(clientMode);
 		return new SSLChannel(slot, sc, engine);
 	}
+*/
 }

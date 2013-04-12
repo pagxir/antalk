@@ -30,7 +30,6 @@ public class MySSLChannel implements ReadableByteChannel {
 
 		try  {
 			sslContext = SSLContext.getInstance("TLS");
-			//sslContext.init(null, null, null);
 			sslContext.init(null, trustManager, null);
 			engine = sslContext.createSSLEngine();
 		} catch (Exception e) {
