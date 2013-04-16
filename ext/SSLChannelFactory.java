@@ -37,11 +37,9 @@ public class SSLChannelFactory {
 		sslContext = createSSLContext(clientMode);
 	}
 
-/*
 	public SSLChannel createChannel(SlotChannel slot, SocketChannel sc) throws Exception {
 		SSLEngine engine = sslContext.createSSLEngine();
 		engine.setUseClientMode(clientMode);
 		return new SSLChannel(slot, sc, engine);
 	}
-*/
 }
