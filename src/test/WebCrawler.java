@@ -4,10 +4,11 @@ import java.net.*;
 import java.nio.*;
 import com.zhuri.slot.*;
 import java.nio.channels.*;
+import com.zhuri.ssl.EmotionSSLChannel;
 
 public class WebCrawler {
-	SlotChannel mSlotChannel;
 	SocketChannel socketChannel;
+	EmotionSSLChannel mEmotionSSLChannel;
 
 	SlotWait mReadBlock = new SlotWait() {
 		public void invoke() {
@@ -15,7 +16,7 @@ public class WebCrawler {
 			System.out.println("read event");
 			try {
 				ByteBuffer buffer = ByteBuffer.allocate(8000);
-				count = socketChannel.read(buffer);
+				count = mEmotionSSLChannel.read(buffer);
 				System.out.println(new String(buffer.array(), 0, (int)count));
 			} catch (Exception e) {
 				close();
@@ -23,7 +24,7 @@ public class WebCrawler {
 			}
 
 			if (count != -1) {
-				mSlotChannel.wantIn(mReadBlock);
+				mEmotionSSLChannel.selectIn(mReadBlock);
 				return;
 			}
 
@@ -38,9 +39,9 @@ public class WebCrawler {
 			System.out.println("write event");
 			try {
 				String header = "GET / HTTP/1.0\r\n\r\n";
+				mEmotionSSLChannel.selectIn(mReadBlock);
 				ByteBuffer buffer = ByteBuffer.wrap(header.getBytes());
-				socketChannel.finishConnect();
-				socketChannel.write(buffer);
+				mEmotionSSLChannel.write(buffer);
 			} catch (Exception e) {
 				e.printStackTrace();
 				close();
@@ -48,11 +49,22 @@ public class WebCrawler {
 		}
 	};
 
-	public WebCrawler() throws Exception {
-		mSlotChannel = new SlotChannel();
-		socketChannel = SocketChannel.open();
+	SlotWait mConnBlock = new SlotWait() {
+		public void invoke() {
+			try {
+				System.out.println("Conntion block is OK");
+				socketChannel.finishConnect();
+				mEmotionSSLChannel.handshake();
+				mEmotionSSLChannel.selectOut(mWriteBlock);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return;
+			}
+		}
+	};
 
-		mSlotChannel.attach(socketChannel);
+	public WebCrawler() throws Exception {
+		socketChannel = SocketChannel.open();
 	}
 
 	SlotTimer mTimer = new SlotTimer() {
@@ -67,17 +79,16 @@ public class WebCrawler {
 
 		mTimer.reset(100);
 		try {
-			mSlotChannel.wantIn(mReadBlock);
-			mSlotChannel.wantOut(mWriteBlock);
-			address = InetAddress.getByName("www.baidu.com");
-			socketChannel.connect(new InetSocketAddress(address, 80));
+			address = InetAddress.getByName("pwd.tcl-ta.com");
+			mEmotionSSLChannel = new EmotionSSLChannel(socketChannel);
+			mEmotionSSLChannel.selectOut(mConnBlock);
+			socketChannel.connect(new InetSocketAddress(address, 443));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void close() {
-		mSlotChannel.detach();
 		mWriteBlock.clean();
 		mReadBlock.clean();
 	}

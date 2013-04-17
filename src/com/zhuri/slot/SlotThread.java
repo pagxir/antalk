@@ -426,7 +426,7 @@ public class SlotThread {
 			return header.next == null;
 		}
 
-		void record(Wait wait) {
+		public void record(Wait wait) {
 
 			if (WT_INACTIVE != (wait.flags & WT_INACTIVE)) {
 				throw new IllegalStateException("Slot::record wait state is not WT_INACTIVE");
