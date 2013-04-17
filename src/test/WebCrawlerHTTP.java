@@ -5,7 +5,7 @@ import java.nio.*;
 import com.zhuri.slot.*;
 import java.nio.channels.*;
 
-public class WebCrawler {
+public class WebCrawlerHTTP {
 	SlotChannel mSlotChannel;
 	SocketChannel socketChannel;
 
@@ -48,7 +48,7 @@ public class WebCrawler {
 		}
 	};
 
-	public WebCrawler() throws Exception {
+	public WebCrawlerHTTP() throws Exception {
 		mSlotChannel = new SlotChannel();
 		socketChannel = SocketChannel.open();
 
