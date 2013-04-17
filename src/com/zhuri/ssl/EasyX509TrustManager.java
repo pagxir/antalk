@@ -5,6 +5,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.cert.CertificateException;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -42,16 +43,26 @@ public class EasyX509TrustManager implements X509TrustManager {
 			try {
 				certificate.checkValidity();
 			} catch (CertificateException e) {
+				e.printStackTrace();
 			}
 		} else {
-			this.standardTrustManager
-			.checkServerTrusted(certificates, authType);
+			/*
+			   this.standardTrustManager
+			   .checkServerTrusted(certificates, authType);
+			 */
 		}
 		return;
+	}
+
+	public boolean isServerTrusted(X509Certificate[] certs) {
+		return true;
+	}
+
+	public boolean isClientTrusted(X509Certificate[] certs) {
+		return true;
 	}
 
 	public X509Certificate[] getAcceptedIssuers() {
 		return this.standardTrustManager.getAcceptedIssuers();
 	}
 }
-

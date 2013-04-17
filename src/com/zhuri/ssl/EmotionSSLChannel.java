@@ -76,12 +76,13 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 	private final IStreamIO NormalIO = new IStreamIO() {
 		public boolean handshake() throws Exception {
 			Set<String> enabledSuites = new HashSet<String>();
-			String[] cipherSuites = engine.getSupportedCipherSuites();
 
 			ioProxy = HandshakeIO;
 			readBuffer.clear();
 			writeBuffer.clear();
 			engine.setUseClientMode(true);
+
+			String[] cipherSuites = engine.getSupportedCipherSuites();
 			for (String cipherSuite: cipherSuites)
 				enabledSuites.add(cipherSuite);
 			engine.setEnabledCipherSuites((String[])enabledSuites
@@ -161,9 +162,14 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 				produced += result.bytesProduced();
 			} while (result.bytesProduced() > 0 && readBuffer.hasRemaining());
 
+/*
+			int appSize = engine.getSession().getApplicationBufferSize();
+			DEBUG.Print(LOG_TAG, "produced: " + produced + "appSize: " + appSize);
+			DEBUG.Print(LOG_TAG, "Status: " + result.getStatus());
+*/
 			readBuffer.compact();
 			readBuffer.limit(20000);
-			return produced;
+			return (readed == -1 && produced == 0)? -1: produced;
 		}
 
 		public int write(ByteBuffer src) throws IOException {
