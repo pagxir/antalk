@@ -5,4 +5,12 @@ public class DEBUG {
 		if (condition) return;
 		throw new RuntimeException("DEBUG.Assert");
 	}
+
+	static public void Print(String log) {
+		System.out.println(log);
+	}
+
+	static public void Print(String tag, String log) {
+		System.out.println(tag + ": " + log);
+	}
 }

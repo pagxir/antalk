@@ -26,17 +26,16 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 		public int write(ByteBuffer src) throws IOException;
 	}
 
-	private boolean tls;
-	private boolean shaking;
-
-	private IStreamIO ioProxy;
 	private SSLEngine engine;
+	private IStreamIO ioProxy;
 	private SocketChannel sc;
 	private SSLEngineResult.HandshakeStatus status;
+
+	private SlotChannel slotChannel = new SlotChannel();
 	private ByteBuffer readBuffer = ByteBuffer.allocate(20000);
 	private ByteBuffer writeBuffer = ByteBuffer.allocate(20000);
-	private SlotChannel slotChannel = new SlotChannel();
 
+	private final static String LOG_TAG = "EmotionSSLChannel";
 	private final static ByteBuffer EMPTY = ByteBuffer.allocate(0);
 	private final static TrustManager[] trustManager = 
 		new TrustManager[] { new EasyX509TrustManager(null) };
@@ -51,14 +50,22 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 
 	private final SlotWait mInWait = new SlotWait() {
 		public void invoke() {
-			System.out.println("mInWait");
+			DEBUG.Print(LOG_TAG, "mInWait");
+			if (ioProxy == ProxyIO) {
+				mInSlot.wakeup();
+				return;
+			}
 			sslInvoke();
 		}
 	};
 
 	private final SlotWait mOutWait = new SlotWait() {
 		public void invoke() {
-			System.out.println("mOutWait");
+			DEBUG.Print(LOG_TAG, "mOutWait");
+			if (ioProxy == ProxyIO) {
+				mOutSlot.wakeup();
+				return;
+			}
 			sslInvoke();
 		}
 	};
@@ -184,7 +191,6 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 		SSLContext sslContext;
 
 		this.sc = sc;
-		this.tls = false;
 		this.ioProxy = NormalIO;
 
 		try  {
@@ -200,22 +206,24 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 
 	public void sslInvoke() {
 		SSLEngineResult result;
-		System.out.println("sslInvoke");
+		DEBUG.Print(LOG_TAG, "sslInvoke");
 
 		try {
 			status = engine.getHandshakeStatus();
 			while (status != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
+
+				DEBUG.Print(LOG_TAG, "HandshakeStatus " + status);
 				switch (status) {
 					case FINISHED:
-						shaking = false;
-						ioProxy = ProxyIO;
+						if (readBuffer.hasRemaining())
+							mInSlot.wakeup();
+						else if (!mInSlot.isEmpty())
+							slotChannel.wantIn(mInWait);
 						mOutSlot.wakeup();
-						/* mInSlot.wakeup(); */
-						System.out.println("FINISHED");
+						ioProxy = ProxyIO;
 						return;
 
 					case NEED_TASK:
-						System.out.println("NEED_TASK");
 						//{
 						Runnable task = engine.getDelegatedTask();
 						while (task != null) {
@@ -227,7 +235,6 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 						//}
 
 					case NEED_WRAP:
-						System.out.println("NEED_WRAP");
 						//{
 						int produced = 0, sent = 0;
 						while (status == SSLEngineResult.HandshakeStatus.NEED_WRAP) {
@@ -245,7 +252,6 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 						//}
 
 					case NEED_UNWRAP:
-						System.out.println("NEED_UNWRAP");
 						//{
 						int count;
 						int bytesConsumed = 0;
@@ -257,7 +263,7 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 						do {
 
 							if (!readBuffer.hasRemaining()) {
-								System.out.println("no buffer data");
+								DEBUG.Print(LOG_TAG, "no buffer data");
 								break;
 							}
 
@@ -267,9 +273,10 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 							bytesConsumed += result.bytesConsumed();
 
 							if (0 == result.bytesConsumed()) {
-								System.out.println("need more buffer data");
+								DEBUG.Print(LOG_TAG, "need more buffer data");
 								break;
 							}
+
 						} while (status == HandshakeStatus.NEED_UNWRAP);
 
 						readBuffer.compact();
@@ -284,17 +291,20 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 						//}
 
 					case NOT_HANDSHAKING:
-						System.out.println("NOT_HANDSHAKING");
-						shaking = false;
-						return;
+						/* TODO: NOT_HANDSHAKING */
+						break;
 				}
+
 			}
+
 		} catch (Exception e) {
+			/* TODO: Handshake Exception. */
 			e.printStackTrace();
-			return;
 		}
 
-		shaking = false;
+		ioProxy = NormalIO;
+		mOutSlot.wakeup();
+		mInSlot.wakeup();
 		return;
 	}
 

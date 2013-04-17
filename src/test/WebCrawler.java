@@ -39,7 +39,6 @@ public class WebCrawler {
 			System.out.println("write event");
 			try {
 				String header = "GET / HTTP/1.0\r\n\r\n";
-				mEmotionSSLChannel.selectIn(mReadBlock);
 				ByteBuffer buffer = ByteBuffer.wrap(header.getBytes());
 				mEmotionSSLChannel.write(buffer);
 			} catch (Exception e) {
@@ -55,6 +54,7 @@ public class WebCrawler {
 				System.out.println("Conntion block is OK");
 				socketChannel.finishConnect();
 				mEmotionSSLChannel.handshake();
+				mEmotionSSLChannel.selectIn(mReadBlock);
 				mEmotionSSLChannel.selectOut(mWriteBlock);
 			} catch (Exception e) {
 				e.printStackTrace();
