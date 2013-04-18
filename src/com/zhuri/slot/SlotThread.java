@@ -257,6 +257,17 @@ public class SlotThread {
 
 	/* BEGIN: implement channel module */
 	static Selector selector = null;
+	static public Channel getSlotChannel(SelectableChannel selectable) {
+		Channel channel;
+		SelectionKey key = selectable.keyFor(selector);
+
+		if (key != null) {
+			channel = (Channel)key.attachment();
+			return channel;
+		}
+
+		return null;
+	}
 
 	static void chInvoke(long timeout) throws Exception {
 		int count;
@@ -315,34 +326,19 @@ public class SlotThread {
 			mSlotKey = null;
 		}
 
-		public void attach(DatagramChannel channel) {
-
-			/* channel or selector should not be null. */
-			if (channel == null || selector == null)
-				throw new IllegalArgumentException("SlotChannel.attach udp failure");
-
-			try {
-				mFlags = SelectionKey.OP_READ;
-				channel.configureBlocking(false);
-				mSlotKey = channel.register(selector, mFlags, this);
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new IllegalArgumentException("SlotChannel.attach udp failure");
-			}
-		}
-
-		public void attach(SocketChannel channel) {
+		public void attach(SelectableChannel channel) {
 
 			/* channel or selector should not be null. */
 			if (channel == null || selector == null)
 				throw new IllegalArgumentException("SlotChannel.attach tcp failure");
 
 			try {
+				mFlags = channel.validOps();
 				channel.configureBlocking(false);
 				mSlotKey = channel.register(selector, mFlags, this);
 			} catch (Exception e) {
 				e.printStackTrace();
-				throw new IllegalArgumentException("SlotChannel.attach tcp failure");
+				throw new IllegalArgumentException("SlotChannel.attach x failure");
 			}
 		}
 

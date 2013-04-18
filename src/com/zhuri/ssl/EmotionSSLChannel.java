@@ -31,7 +31,7 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 	private SocketChannel sc;
 	private SSLEngineResult.HandshakeStatus status;
 
-	private SlotChannel slotChannel = new SlotChannel();
+	private SlotChannel slotChannel = null;
 	private ByteBuffer readBuffer = ByteBuffer.allocate(20000);
 	private ByteBuffer writeBuffer = ByteBuffer.allocate(20000);
 
@@ -203,14 +203,14 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 			sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(null, trustManager, null);
 			engine = sslContext.createSSLEngine();
-			slotChannel.attach(sc);
+			slotChannel = SlotChannel.open(sc);
 		} catch (Exception e) {
 			e.printStackTrace();
 			/* throw e; */
 		}
 	}
 
-	public void sslInvoke() {
+	private void sslInvoke() {
 		SSLEngineResult result;
 		DEBUG.Print(LOG_TAG, "sslInvoke");
 
