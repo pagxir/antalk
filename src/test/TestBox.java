@@ -12,9 +12,6 @@ public class TestBox {
 			try {
 				TestTalkClient client = new TestTalkClient();
 				client.start();
-
-				WebCrawler crawler = new WebCrawler("https://github.com/pagxir");
-				crawler.start();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return;
@@ -28,8 +25,8 @@ public class TestBox {
 		try {
 			SlotThread.Init();
 
-			crawler = new WebCrawler("http://www.baidu.com/");
-			crawler.start();
+			for (String url: args)
+				new WebCrawler(url).start();
 
 			mTimer.reset(10000);
 			while (SlotThread.step());

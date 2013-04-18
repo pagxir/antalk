@@ -89,13 +89,22 @@ public class WebCrawler {
 
 	SlotWait mConnBlock = new SlotWait() {
 		public void invoke() {
+			String authority = mUrl.getAuthority();
+
+			if (mUrl.getPort() ==  -1) {
+				if (mUrl.getProtocol().equals("https"))
+					authority += ":443";
+				else if (mUrl.getProtocol().equals("http"))
+					authority += ":80";
+			}
+
 			String xyHead =
-			"CONNECT " + mUrl.getAuthority() + " HTTP/1.0\r\n" +
+			"CONNECT " + authority + " HTTP/1.0\r\n" +
 			"Proxy-Authorization: Basic cHJveHk6QWRabkdXVE0wZExUCg==\r\n" +
 			"\r\n";
 
 			try {
-				System.out.println("Conntion block is OK");
+				System.out.println("Conntion " + xyHead);
 				socketChannel.finishConnect();
 
 				ByteBuffer buffer = ByteBuffer.wrap(xyHead.getBytes());
