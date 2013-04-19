@@ -15,37 +15,29 @@ import com.zhuri.util.DEBUG;
 import com.zhuri.slot.SlotWait;
 import com.zhuri.slot.SlotSlot;
 import com.zhuri.slot.SlotChannel;
+import com.zhuri.slot.IWaitableChannel;
 
-public class EmotionSSLChannel implements ReadableByteChannel {
-
-	interface IStreamIO {
-		public void selectIn(SlotWait wait);
-		public void selectOut(SlotWait wait);
-		public boolean handshake() throws Exception;
-		public int read(ByteBuffer dst) throws IOException;
-		public int write(ByteBuffer src) throws IOException;
-	}
+public class WaitableSslChannel implements IWaitableChannel {
 
 	private SSLEngine engine;
-	private IStreamIO ioProxy;
-	private SocketChannel sc;
+	private IWaitableChannel channel;
+	private IWaitableSslChannel ioProxy;
 	private SSLEngineResult.HandshakeStatus status;
 
-	private SlotChannel slotChannel = null;
 	private ByteBuffer readBuffer = ByteBuffer.allocate(20000);
 	private ByteBuffer writeBuffer = ByteBuffer.allocate(20000);
 
-	private final static String LOG_TAG = "EmotionSSLChannel";
+	private final static String LOG_TAG = "WaitSslChannel";
 	private final static ByteBuffer EMPTY = ByteBuffer.allocate(0);
 	private final static TrustManager[] trustManager = 
 		new TrustManager[] { new EasyX509TrustManager(null) };
 
-	public void selectIn(SlotWait wait) {
-		ioProxy.selectIn(wait);
-	};
+	public void waitI(SlotWait wait) {
+		ioProxy.waitI(wait);
+	}
 
-	public void selectOut(SlotWait wait) {
-		ioProxy.selectOut(wait);
+	public void waitO(SlotWait wait) {
+		ioProxy.waitO(wait);
 	};
 
 	private final SlotWait mInWait = new SlotWait() {
@@ -73,7 +65,11 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 	private final SlotSlot mInSlot = new SlotSlot();
 	private final SlotSlot mOutSlot = new SlotSlot();
 
-	private final IStreamIO NormalIO = new IStreamIO() {
+	interface IWaitableSslChannel extends IWaitableChannel {
+		boolean handshake() throws Exception;
+	}
+
+	private final IWaitableSslChannel NormalIO = new IWaitableSslChannel() {
 		public boolean handshake() throws Exception {
 			Set<String> enabledSuites = new HashSet<String>();
 
@@ -89,67 +85,67 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 					.toArray(new String[enabledSuites.size()]));
 			engine.beginHandshake();
 
-			sslInvoke();
+			channel.waitO(mInWait);
 			return true;
 		}
 
-		public void selectIn(SlotWait wait) {
-			slotChannel.wantIn(wait);
+		public void waitI(SlotWait wait) {
+			channel.waitI(wait);
 		}
 
-		public void selectOut(SlotWait wait) {
-			slotChannel.wantOut(wait);
+		public void waitO(SlotWait wait) {
+			channel.waitI(wait);
 		}
 
-		public int read(ByteBuffer dst) throws IOException {
-			return sc.read(dst);
+		public long read(ByteBuffer dst) throws IOException {
+			return channel.read(dst);
 		}
 
-		public int write(ByteBuffer src) throws IOException {
-			return sc.write(src);
+		public long write(ByteBuffer src) throws IOException {
+			return channel.write(src);
 		}
 	};
 
-	private final IStreamIO HandshakeIO = new IStreamIO() {
+	private final IWaitableSslChannel HandshakeIO = new IWaitableSslChannel() {
 		public boolean handshake() throws Exception {
 			return true;
 		}
 
-		public void selectIn(SlotWait wait) {
+		public void waitI(SlotWait wait) {
 			mInSlot.record(wait);
 		}
 
-		public void selectOut(SlotWait wait) {
+		public void waitO(SlotWait wait) {
 			mOutSlot.record(wait);
 		}
 
-		public int read(ByteBuffer dst) throws IOException {
+		public long read(ByteBuffer dst) throws IOException {
 			throw new IOException("in ssl handshaking state");
 		}
 
-		public int write(ByteBuffer src) throws IOException {
+		public long write(ByteBuffer src) throws IOException {
 			throw new IOException("in ssl handshaking state");
 		}
 	};
 
-	private final IStreamIO ProxyIO = new IStreamIO() {
+	private final IWaitableSslChannel ProxyIO = new IWaitableSslChannel() {
 		public boolean handshake() throws Exception {
 			return true;
 		}
 
-		public void selectIn(SlotWait wait) {
-			slotChannel.wantIn(wait);
+		public void waitI(SlotWait wait) {
+			channel.waitI(wait);
 		}
 
-		public void selectOut(SlotWait wait) {
-			slotChannel.wantOut(wait);
+		public void waitO(SlotWait wait) {
+			channel.waitO(wait);
 		}
 
-		public int read(ByteBuffer dst) throws IOException {
-			int readed, produced = 0;
+		public long read(ByteBuffer dst) throws IOException {
+			long readed, produced = 0;
 			SSLEngineResult result = null;
 
-			readed = sc.read(readBuffer);
+			readed = channel.read(readBuffer);
 			readBuffer.flip();
 
 			if (!readBuffer.hasRemaining()) {
@@ -172,8 +168,8 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 			return (readed == -1 && produced == 0)? -1: produced;
 		}
 
-		public int write(ByteBuffer src) throws IOException {
-			int produced = 0;
+		public long write(ByteBuffer src) throws IOException {
+			long produced = 0;
 			SSLEngineResult result = null;
 
 			do {
@@ -185,7 +181,7 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 			DEBUG.Assert(!src.hasRemaining());
 
 			writeBuffer.flip();
-			produced = sc.write(writeBuffer);
+			produced = channel.write(writeBuffer);
 
 			DEBUG.Assert(!writeBuffer.hasRemaining());
 			writeBuffer.clear();
@@ -193,17 +189,16 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 		}
 	};
 
-	public EmotionSSLChannel(SocketChannel sc) {
+	public WaitableSslChannel(IWaitableChannel channel) {
 		SSLContext sslContext;
 
-		this.sc = sc;
+		this.channel = channel;
 		this.ioProxy = NormalIO;
 
 		try  {
 			sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(null, trustManager, null);
 			engine = sslContext.createSSLEngine();
-			slotChannel = SlotChannel.open(sc);
 		} catch (Exception e) {
 			e.printStackTrace();
 			/* throw e; */
@@ -224,7 +219,7 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 						if (readBuffer.hasRemaining())
 							mInSlot.wakeup();
 						else if (!mInSlot.isEmpty())
-							slotChannel.wantIn(mInWait);
+							channel.waitI(mInWait);
 						mOutSlot.wakeup();
 						ioProxy = ProxyIO;
 						return;
@@ -242,7 +237,7 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 
 					case NEED_WRAP:
 						//{
-						int produced = 0, sent = 0;
+						long produced = 0, sent = 0;
 						while (status == SSLEngineResult.HandshakeStatus.NEED_WRAP) {
 							result = engine.wrap(EMPTY, writeBuffer);
 							status = result.getHandshakeStatus();
@@ -251,7 +246,7 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 
 						DEBUG.Assert(writeBuffer.position() == produced);
 						writeBuffer.flip();
-						sent = sc.write(writeBuffer);
+						sent = channel.write(writeBuffer);
 						DEBUG.Assert(sent == produced);
 						writeBuffer.clear();
 						break;
@@ -259,10 +254,10 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 
 					case NEED_UNWRAP:
 						//{
-						int count;
-						int bytesConsumed = 0;
+						long count;
+						long bytesConsumed = 0;
 
-						count = sc.read(readBuffer);
+						count = channel.read(readBuffer);
 						DEBUG.Assert(count != -1);
 
 						readBuffer.flip();
@@ -290,7 +285,7 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 
 						if (bytesConsumed == 0) {
 							DEBUG.Assert(status == HandshakeStatus.NEED_UNWRAP);
-							slotChannel.wantIn(mInWait);
+							channel.waitI(mInWait);
 							return;
 						}
 						break;
@@ -318,11 +313,11 @@ public class EmotionSSLChannel implements ReadableByteChannel {
 		return ioProxy.handshake();
 	}
 
-	public int write(ByteBuffer src) throws IOException {
+	public long write(ByteBuffer src) throws IOException {
 		return ioProxy.write(src);
 	}
 
-	public int read(ByteBuffer dst) throws IOException {
+	public long read(ByteBuffer dst) throws IOException {
 		return ioProxy.read(dst);
 	}
 
