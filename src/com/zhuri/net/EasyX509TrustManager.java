@@ -1,4 +1,4 @@
-package com.zhuri.ssl;
+package com.zhuri.net;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;

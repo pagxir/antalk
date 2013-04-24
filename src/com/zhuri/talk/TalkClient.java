@@ -1,5 +1,11 @@
 package com.zhuri.talk;
 
+import com.zhuri.slot.*;
+import com.zhuri.util.DEBUG;
+import com.zhuri.net.Connector;
+import com.zhuri.net.XyConnector;
+import com.zhuri.net.IConnectable;
+
 public class TalkClient {
 	final static int WF_RESOLV = 0x00000001;
 	final static int WF_HEADER = 0x00000002;
@@ -23,6 +29,37 @@ public class TalkClient {
 	final static int WF_FORCETLS   = 0x10000000;
 	final static int WF_ENABLETLS  = 0x20000000;
 
+
+	final private int mInterval = 10000;
+	final private Connector mConnector = new XyConnector("223.167.213.254:9418");
+
+	final private SlotTimer mKeepalive = new SlotTimer() {
+		public void invoke() {
+			DEBUG.Print("time out event");
+			routine();
+			mKeepalive.reset(mInterval);
+			return;
+		}
+	};
+
+	final private SlotWait mWaitOut = new SlotWait() {
+		public void invoke() {
+			DEBUG.Print("output event");
+			mKeepalive.reset(mInterval);
+			routine();
+			return;
+		}
+	};
+
+	final private SlotWait mWaitIn = new SlotWait() {
+		public void invoke() {
+			DEBUG.Print("input event");
+			mKeepalive.reset(mInterval);
+			routine();
+			return;
+		}
+	};
+
 	private int mStateFlags = 0;
 	private boolean stateMatch(int next, int prev) {
 		int flags = mStateFlags;
@@ -42,12 +79,19 @@ public class TalkClient {
 		}
 
 		if (stateMatch(WF_CONNECTING, WF_RESOLV)) {
+			mConnector.connect("xmpp.l.google.com:5222");
+			mKeepalive.reset(mInterval);
+			mConnector.waitO(mWaitOut);
 			mStateFlags |= WF_CONNECTING;
 		}
 
 		if (stateMatch(WF_CONNECTED, WF_CONNECTING)) {
-			mStateFlags |= WF_CONNECTED;
+			if (mWaitOut.completed()) {
+				mStateFlags |= WF_CONNECTED;
+				mWaitOut.clear();
+			}
 		}
+
 
 		if (stateMatch(WF_HEADER, WF_CONNECTED)) {
 			mStateFlags |= WF_HEADER;

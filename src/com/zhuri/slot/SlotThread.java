@@ -491,7 +491,7 @@ public class SlotThread {
 			SlotThread.schedule(this);
 		}
 
-		void cancel() {
+		public void cancel() {
 			if (this.active() && 0 == (flags & WT_CLEANING)) {
 				this.prev.next = this.next;
 				if (this.next != null) {
@@ -511,14 +511,14 @@ public class SlotThread {
 			this.callback = null;
 		}
 
-		void clear() {
+		public void clear() {
 			int flags;
 			this.cancel();
 			flags = this.flags;
 			this.flags = flags & ~WT_COMPLETE;
 		}
 
-		boolean completed() {
+		public boolean completed() {
 			int flags = this.flags;
 			flags &= WT_COMPLETE;
 			return (flags != 0);
