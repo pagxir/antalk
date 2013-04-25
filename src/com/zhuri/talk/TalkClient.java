@@ -35,9 +35,10 @@ public class TalkClient {
 	final static int WF_ENABLETLS  = 0x20000000;
 
 	final private static String LOG_TAG = "TalkClient";
+	final private static String XYHOST  = "223.167.213.254:9418";
 
 	final private int mInterval = 10000;
-	final private Connector mConnector = new XyConnector("223.167.213.254:9418");
+	final private Connector mConnector = new XyConnector(XYHOST);
 
 	final private SlotTimer mKeepalive = new SlotTimer() {
 		public void invoke() {
@@ -59,35 +60,15 @@ public class TalkClient {
 
 	final private SlotWait mWaitIn = new SlotWait() {
 		public void invoke() {
-			long count = -1;
-			String message = "";
-			ByteBuffer buffer = ByteBuffer.allocate(80000);
-
 			DEBUG.Print("input event");
 			mKeepalive.reset(mInterval);
-
-			try {
-				count = mProxyChannel.read(buffer);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			/* update */
-
-			if (count != -1 && thisPacket == null) {
-				message = new String(buffer.array(), 0, (int)count);
-				System.out.println(message);
-				mProxyChannel.waitI(mWaitIn);
-				return;
-			}
-
-			System.out.println("stream is close");
 			routine();
 			return;
 		}
 	};
 
 	private int mStateFlags = 0;
+	private SampleXmlChannel mXmlChannel = null;
 	private boolean stateMatch(int next, int prev) {
 		int flags = mStateFlags;
 		flags &= (next | prev);
@@ -100,59 +81,7 @@ public class TalkClient {
 		return;
 	}
 
-	private IWaitableChannel mProxyChannel = null;
-	protected boolean put(String packet) {
-		long count = 0;
-		ByteBuffer buffer;
-		buffer = ByteBuffer.wrap(packet.getBytes());
-
-		try {
-			count = mProxyChannel.write(buffer);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		DEBUG.Print(LOG_TAG, "put:\n" + packet);
-		return (count > 0);
-	}
-
-	public boolean put(Packet packet) {
-		String content;
-
-		content = packet.toString();
-		return put(content);
-	}
-
-	private Packet thisPacket = null;
-	static private final Packet emptyPacket = new Packet();
-
-	static private final int TAG_THIS = 0x0001;
-	static private final int TAG_NEXT = 0x0000;
-	public Packet get(int flags) {
-		Packet packet = null;
-
-		switch (flags) {
-			case TAG_NEXT:
-				mProxyChannel.waitI(mWaitIn);
-				thisPacket = null;
-				break;
-
-			case TAG_THIS:
-				packet = thisPacket;
-				if (thisPacket == null)
-					packet = emptyPacket;
-				break;
-
-			default:
-				packet = emptyPacket;
-				break;
-		}
-
-		return packet;
-	}
-
 	public void updateFeature(Packet packet) {
-
 		return;
 	}
 
@@ -170,23 +99,24 @@ public class TalkClient {
 
 		if (stateMatch(WF_CONNECTED, WF_CONNECTING)) {
 			if (mWaitOut.completed()) {
+				mXmlChannel = new SampleXmlChannel(mConnector);
 				mStateFlags |= WF_CONNECTED;
-				mProxyChannel = mConnector;
 				mWaitOut.clear();
 			}
 		}
 
-
 		if (stateMatch(WF_HEADER, WF_CONNECTED)) {
-			put(Stream.begin("gmail.com"));
+			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
+			mXmlChannel.open("gmail.com");
+			mXmlChannel.waitI(mWaitIn);
 			mStateFlags |= WF_HEADER;
-			get(TAG_NEXT);
 		}
 
 		if (stateMatch(WF_FEATURE, WF_HEADER)) {
-			if (get(TAG_THIS).matchTag("feature")) {
-				updateFeature(get(TAG_THIS));
+			Packet packet = mXmlChannel.get();
+			if (packet.matchTag("feature")) {
 				mStateFlags |= WF_FEATURE;
+				updateFeature(packet);
 			}
 		}
 
