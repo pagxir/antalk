@@ -114,10 +114,12 @@ public class TalkClient {
 
 		if (stateMatch(WF_FEATURE, WF_HEADER)) {
 			Packet packet = mXmlChannel.get();
+			/*
 			if (packet.matchTag("feature")) {
 				mStateFlags |= WF_FEATURE;
 				updateFeature(packet);
 			}
+			*/
 		}
 
 		if (stateMatch(WF_STARTTLS, WF_FEATURE)) {
