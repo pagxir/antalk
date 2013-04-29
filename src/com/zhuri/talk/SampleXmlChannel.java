@@ -20,64 +20,6 @@ public class SampleXmlChannel {
 		mChannel = channel;
 	}
 
-	private boolean skipBar(ByteBuffer b) {
-	}
-
-	private boolean skipName(ByteBuffer b) {
-	}
-
-	private boolean skipAttr(ByteBuffer b) {
-	}
-
-	private boolean skipDeclaration(ByteBuffer b) {
-
-		b.mark();
-		if (b.get() != '<'
-			|| b.get() != '?') {
-			b.reset();
-			return true;
-		}
-
-		if (skipName(b) &&
-			skipAttr(b) && skipBar(b)) {
-			if (b.get() == '?' && b.get() =='>')
-				return true;
-		}
-
-		b.reset();
-		return false;
-	}
-
-	private boolean skipTagBegin(ByteBuffer b) {
-		Byte n;
-		b.mark();
-		skipBar(b);
-
-		if (b.get() != '<') {
-			b.reset();
-			return false;
-		}
-
-		if (skipName(b) &&
-			skipAttr(b) && skipBar(b)) {
-			switch (b.get()) {
-				case '/':
-					if (b.get() == '>')
-						return true;
-					break;
-
-				case '>':
-					return true;
-
-				default:
-					break;
-			}
-		}
-
-		b.reset();
-		return false;
-	}
-
 	private final SlotWait mIWait = new SlotWait() {
 		public void invoke() {
 			System.out.println("mIWait");
