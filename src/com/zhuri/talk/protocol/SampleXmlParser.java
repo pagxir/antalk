@@ -128,7 +128,6 @@ out:
 
 	private boolean skipTagBegin(ByteBuffer b) {
 		Byte n;
-		b.mark();
 		skipBar(b);
 
 		mTypeLast = TYPE_NONE;
@@ -156,7 +155,28 @@ out:
 			}
 		}
 
-		b.reset();
+		return false;
+	}
+
+	public boolean skipTagContent(ByteBuffer b) {
+		skipBar(b);
+		skipTagBegin(b);
+
+		if (mTypeLast == TYPE_OPEN) {
+			skipText(b);
+
+			while (b.hasRemaining() && !isTagEnd(b)) {
+				if (!skipTagContent(b))
+					return false;
+				skipText(b);
+			}
+
+			if (isTagEnd(b)) {
+				skipTagEnd(b);
+				return true;
+			}
+		}
+
 		return false;
 	}
 }
