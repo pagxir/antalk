@@ -8,14 +8,11 @@ public class SampleXmlParser {
 	public final static int TYPE_CLOSE = 0x02;
 
 	private int mTypeLast = TYPE_NONE;
-	public SampleXmlParser() {
-
-	}
-
 	private boolean skipBar(ByteBuffer b) {
 		int p;
 
 		p = b.position();
+out:
 		for ( ; ; ) {
 			switch (b.get()) {
 				case '\r':
@@ -29,7 +26,7 @@ public class SampleXmlParser {
 					break out;
 			}
 		}
-out:
+
 		b.position(p);
 		return true;
 	}
@@ -49,7 +46,8 @@ out:
 		}
 
 		while (s < table.length() && table.charAt(s) != ']') {
-			String sub = table.substring(s, 3);
+			String sub = (s + 3 > table.length()?
+					"": table.substring(s, s + 3));
 			if (sub.equals("A-Z")) {
 				if (dot >= 'A' && dot <= 'Z')
 					return neg;
@@ -85,11 +83,24 @@ out:
 		return true;
 	}
 
+	private boolean skipText(ByteBuffer b) {
+		int p;
+		byte n;
+
+		do
+			n = b.get();
+		while (charMatch(n, "[^<]"));
+
+		p = b.position() - 1;
+		b.position(p);
+		return true;
+	}
+
 	private boolean skipAttr(ByteBuffer b) {
 		int p;
 
 		do {
-			int bar;
+			byte bar;
 
 			do bar = b.get();
 			while (charMatch(bar, "[A-Za-z0-9:= ]"));
@@ -99,7 +110,7 @@ out:
 			} else {
 				break;
 			}
-		} while (1);
+		} while (true);
 
 		p = b.position() - 1;
 		b.position(p);
@@ -111,13 +122,13 @@ out:
 
 		p = b.position();
 		if (b.get() != '<'
-			|| b.get() != '?') {
-			b.reset();
+				|| b.get() != '?') {
+			b.position(p);
 			return true;
 		}
 
 		if (skipName(b) &&
-			skipAttr(b) && skipBar(b)) {
+				skipAttr(b) && skipBar(b)) {
 			if (b.get() == '?' && b.get() =='>')
 				return true;
 		}
@@ -141,13 +152,13 @@ out:
 			switch (b.get()) {
 				case '/':
 					if (b.get() == '>') {
-						mTypeLast = TYPE_OPEN;
+						mTypeLast = TYPE_CLOSE;
 						return true;
 					}
 					break;
 
 				case '>':
-					mTypeLast = TYPE_CLOSE;
+					mTypeLast = TYPE_OPEN;
 					return true;
 
 				default:
@@ -156,6 +167,36 @@ out:
 		}
 
 		return false;
+	}
+
+	private boolean skipTagEnd(ByteBuffer b) {
+		byte y;
+
+		y = b.get();
+		if (y != '<')
+			return false;
+
+		y = b.get();
+		if (y != '/')
+			return false;
+
+		skipName(b);
+		skipBar(b);
+
+		y = b.get();
+		if (y != '>')
+			return false;
+
+		return true;
+	}
+
+	private boolean isTagEnd(ByteBuffer b) {
+		int p = b.position();
+		byte[] tagMark = new byte[2];
+		tagMark[0] = b.get();
+		tagMark[1] = b.get();
+		b.position(p);
+		return (tagMark[0] == '<' && tagMark[1] == '/');
 	}
 
 	public boolean skipTagContent(ByteBuffer b) {
@@ -178,5 +219,28 @@ out:
 		}
 
 		return false;
+	}
+
+	public boolean loadDocument(String content) {
+		ByteBuffer buf = ByteBuffer.wrap(content.getBytes());
+
+		skipBar(buf);
+		skipDeclaration(buf);
+		skipTagContent(buf);
+
+		return true;
+	}
+
+	public static void main(String[] args) {
+		SampleXmlParser parser = new SampleXmlParser();
+		parser.loadDocument("<root/>");
+		System.out.println("A");
+		parser.loadDocument("<root>Hello</root>");
+		System.out.println("B");
+		parser.loadDocument("<?xml version='1.0'?><root/>");
+		System.out.println("C");
+		parser.loadDocument("<?xml version='1.0'?><root><item>free list</item></root>");
+		System.out.println("D");
+		parser.loadDocument("<root abc='ddd' uuu='klli'>Hello</root>");
 	}
 }
