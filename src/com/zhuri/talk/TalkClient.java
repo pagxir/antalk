@@ -35,7 +35,8 @@ public class TalkClient {
 	final static int WF_ENABLETLS  = 0x20000000;
 
 	final private static String LOG_TAG = "TalkClient";
-	final private static String XYHOST  = "223.167.213.254:9418";
+	//final private static String XYHOST  = "223.167.213.254:9418";
+	final private static String XYHOST  = "192.168.42.129:1800";
 
 	final private int mInterval = 10000;
 	final private Connector mConnector = new XyConnector(XYHOST);

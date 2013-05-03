@@ -6,6 +6,7 @@ import com.zhuri.slot.*;
 import java.io.IOException;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Stream;
+import com.zhuri.talk.protocol.SampleXmlParser;
 
 public class SampleXmlChannel {
 	public final static int XML_NEXT = 0x01;
@@ -15,6 +16,7 @@ public class SampleXmlChannel {
 	private IWaitableChannel mChannel = null;
 	private final int[] arrcalc = new int[2];
 	private final ByteBuffer  mXmlBuffer = ByteBuffer.allocate(65536);
+	private final SampleXmlParser mXmlParser = new SampleXmlParser();
 
 	public SampleXmlChannel(IWaitableChannel channel) {
 		mChannel = channel;
@@ -23,10 +25,6 @@ public class SampleXmlChannel {
 	private final SlotWait mIWait = new SlotWait() {
 		public void invoke() {
 			System.out.println("mIWait");
-
-			int tagidx = 0;
-			byte dotcur = '.';
-			byte dotprev = '$';
 
 			try {
 				lastRead = mChannel.read(mXmlBuffer);
@@ -37,56 +35,6 @@ public class SampleXmlChannel {
 				return;
 			}
 
-			int[] savArrCalc = new int[2];
-			savArrCalc[0] = arrcalc[0];
-			savArrCalc[1] = arrcalc[1];
-
-			while (mXmlBuffer.hasRemaining()) {
-				dotcur = mXmlBuffer.get();
-				if (dotcur == '/' &&
-						dotprev == '<') {
-					tagidx = 1;
-				}
-
-				if (dotcur == '>' &&
-						dotprev == '/') {
-					arrcalc[0]++;
-					tagidx = 1;
-				}
-
-				if (dotcur == '>' &&
-						dotprev == '?') {
-					dotprev = dotcur;
-					tagidx = 0;
-					continue;
-				}
-
-				if (dotcur == '>') {
-					arrcalc[tagidx]++;
-					tagidx = 0;
-				}
-
-				if (dotcur == '>' && arrcalc[0] == arrcalc[1] + 1) {
-					if (arrcalc[1] == 0) {
-						savArrCalc[0] = arrcalc[0];
-						savArrCalc[1] = arrcalc[1];
-						dotprev = dotcur;
-						mXmlBuffer.compact();
-						mXmlBuffer.flip();
-						continue;
-					}
-
-					//parsePacket(buffer.array(), 0, buffer.position());
-					mXmlBuffer.compact();
-					mISlot.wakeup();
-					return;
-				}
-
-				dotprev = dotcur;
-			}
-
-			arrcalc[0] = savArrCalc[0];
-			arrcalc[1] = savArrCalc[1];
 			return;
 		}
 	};
