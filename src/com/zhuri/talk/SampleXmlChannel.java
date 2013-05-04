@@ -13,6 +13,7 @@ public class SampleXmlChannel {
 	public final static int XML_PEEK = 0x02;
 
 	private long lastRead = -1;
+	private boolean mXmlOpened = false;
 	private IWaitableChannel mChannel = null;
 	private final int[] arrcalc = new int[2];
 	private final ByteBuffer  mXmlBuffer = ByteBuffer.allocate(65536);
@@ -35,6 +36,26 @@ public class SampleXmlChannel {
 				return;
 			}
 
+			mXmlBuffer.mark();
+			if (mXmlOpened == false)
+				mXmlOpened = mXmlParser.open(mXmlBuffer);
+
+			if (mXmlOpened == true) {
+				mXmlBuffer.mark();
+				try {
+					while (mXmlParser.skipTagContent(mXmlBuffer)) {
+						System.out.println("tag is finish");
+						mXmlBuffer.mark();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
+			if (lastRead != -1)
+				mChannel.waitI(mIWait);
+			mXmlBuffer.reset();
+			mXmlBuffer.compact();
 			return;
 		}
 	};

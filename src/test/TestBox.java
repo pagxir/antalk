@@ -28,7 +28,7 @@ public class TestBox {
 			for (String url: args)
 				new WebCrawler(url).start();
 
-			mTimer.reset(10000);
+			mTimer.reset(100);
 			while (SlotThread.step());
 		} catch (Exception e) {
 			e.printStackTrace();

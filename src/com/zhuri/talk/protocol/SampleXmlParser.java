@@ -218,7 +218,13 @@ out:
 			}
 		}
 
-		return false;
+		return (mTypeLast == TYPE_CLOSE);
+	}
+
+	public boolean open(ByteBuffer b) {
+		skipBar(b);
+		skipDeclaration(b);
+		return skipTagBegin(b);
 	}
 
 	public boolean loadDocument(String content) {
@@ -226,21 +232,6 @@ out:
 
 		skipBar(buf);
 		skipDeclaration(buf);
-		skipTagContent(buf);
-
-		return true;
-	}
-
-	public static void main(String[] args) {
-		SampleXmlParser parser = new SampleXmlParser();
-		parser.loadDocument("<root/>");
-		System.out.println("A");
-		parser.loadDocument("<root>Hello</root>");
-		System.out.println("B");
-		parser.loadDocument("<?xml version='1.0'?><root/>");
-		System.out.println("C");
-		parser.loadDocument("<?xml version='1.0'?><root><item>free list</item></root>");
-		System.out.println("D");
-		parser.loadDocument("<root abc='ddd' uuu='klli'>Hello</root>");
+		return skipTagContent(buf);
 	}
 }
