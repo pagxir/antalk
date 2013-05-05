@@ -17,10 +17,7 @@ $(patsubst ./%,%, \
 endef
 
 define build-java-archive
-for f in $(LOCAL_SRC_FILES); \
-do \
-	javac -d $(LOCAL_OUT_DIR) -s $(LOCAL_PATH)/src -cp $(LOCAL_OUT_DIR) $$f; \
-done;
+javac -d $(LOCAL_OUT_DIR) -s $(LOCAL_PATH)/src -cp $(LOCAL_OUT_DIR) $(LOCAL_SRC_FILES)
 endef
 
 LOCAL_PATH := $(call my-dir)
