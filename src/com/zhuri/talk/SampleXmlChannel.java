@@ -128,7 +128,7 @@ public class SampleXmlChannel {
 
 	private Packet mPacket = Packet.EMPTY_PACKET;
 	public Packet get() {
-		if (mPacket == Packet.EMPTY_PACKET) {
+		if (mXmlOpened && mPacket == Packet.EMPTY_PACKET) {
 			/* DEBUG.Print("SampleXmlChannel::get"); */
 			update();
 		}
@@ -139,6 +139,7 @@ public class SampleXmlChannel {
 		int start;
 		int finish;
 
+		mXmlBuffer.mark();
 		try {
 			start = mXmlBuffer.position();
 			if (mXmlParser.skipTagContent(mXmlBuffer)) {
@@ -147,7 +148,8 @@ public class SampleXmlChannel {
 				return true;
 			}
 		} catch (Exception e) {
-			DEBUG.Print("update is failue");
+			mXmlBuffer.reset();
+			//e.printStackTrace();
 			return false;
 		}
 

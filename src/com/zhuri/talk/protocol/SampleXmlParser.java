@@ -76,7 +76,7 @@ out:
 
 		do
 			n = b.get();
-		while (charMatch(n, "[A-Za-z0-9:]"));
+		while (charMatch(n, "[A-Za-z0-9:-]"));
 
 		p = b.position() - 1;
 		b.position(p);
@@ -103,7 +103,7 @@ out:
 			byte bar;
 
 			do bar = b.get();
-			while (charMatch(bar, "[A-Za-z0-9:= ]"));
+			while (charMatch(bar, "[A-Za-z0-9:= -]"));
 
 			if (bar == '\"' || bar == '\'') {
 				while (b.get() != bar);

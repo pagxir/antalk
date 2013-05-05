@@ -123,6 +123,7 @@ public class TalkClient {
 		if (stateMatch(WF_FEATURE, WF_HEADER)) {
 			Packet packet = mXmlChannel.get();
 			if (packet.matchTag("features")) {
+				DEBUG.Print("features");
 				mStateFlags |= WF_FEATURE;
 				updateFeature(packet);
 			}
@@ -132,6 +133,7 @@ public class TalkClient {
 			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
 			Packet packet = new Starttls();
 			mStateFlags |= WF_STARTTLS;
+			mXmlChannel.waitI(mWaitIn);
 			mXmlChannel.put(packet);
 		}
 
@@ -147,6 +149,7 @@ public class TalkClient {
 			WaitableSslChannel sslChannel = new WaitableSslChannel(mConnector);
 			try { sslChannel.handshake(); } catch (Exception e) {};
 
+			mWaitOut.clear();
 			mWaitableChannel = sslChannel;
 			mWaitableChannel.waitO(mWaitOut);
 
@@ -158,7 +161,9 @@ public class TalkClient {
 			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
 			Packet packet = new PlainSasl("pagxir", "************");
 			mStateFlags |= WF_PLAINSASL;
+			mXmlChannel.waitI(mWaitIn);
 			mXmlChannel.put(packet);
+			DEBUG.Print("WF_PLAINSASL");
 		}
 
 		if (stateMatch(WF_SASLFINISH, WF_PLAINSASL)) {

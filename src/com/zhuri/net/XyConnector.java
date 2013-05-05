@@ -89,11 +89,11 @@ public class XyConnector extends Connector {
 				title = new String(buffer.array(), 0, (int)count);
 
 				if (title.endsWith("\r\n\r\n")) {
-				System.out.println("Proxy Response: " + title);
+					System.out.println("Proxy Response: " + title);
 					mIOProxy = ConnectedIO;
 					mConnector.waitI(mSWait);
 					mOutSlot.wakeup();
-					mIWait.clean();
+					mIWait.clear();
 					return;
 				}
 			} catch (Exception e) {
