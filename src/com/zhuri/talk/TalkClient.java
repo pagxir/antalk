@@ -8,8 +8,12 @@ import com.zhuri.util.DEBUG;
 import com.zhuri.net.Connector;
 import com.zhuri.net.XyConnector;
 import com.zhuri.net.IConnectable;
+import com.zhuri.slot.IWaitableChannel;
+import com.zhuri.net.WaitableSslChannel;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Stream;
+import com.zhuri.talk.protocol.Starttls;
+import com.zhuri.talk.protocol.PlainSasl;
 
 public class TalkClient {
 	final static int WF_RESOLV = 0x00000001;
@@ -31,6 +35,8 @@ public class TalkClient {
 	final static int WF_CONFIGURE = 0x00004000;
 	final static int WF_CONNECTING = 0x00008000;
 	final static int WF_DISCONNECT = 0x00010000;
+	final static int WF_SASLFINISH = 0x00020000;
+
 	final static int WF_FORCETLS   = 0x10000000;
 	final static int WF_ENABLETLS  = 0x20000000;
 
@@ -69,6 +75,7 @@ public class TalkClient {
 
 	private int mStateFlags = 0;
 	private SampleXmlChannel mXmlChannel = null;
+	private IWaitableChannel mWaitableChannel = null;
 	private boolean stateMatch(int next, int prev) {
 		int flags = mStateFlags;
 		flags &= (next | prev);
@@ -87,6 +94,7 @@ public class TalkClient {
 
 	private void routine() {
 		if (stateMatch(WF_RESOLV, WF_CONFIGURE)) {
+			mWaitableChannel = mConnector;
 			mStateFlags |= WF_RESOLV;
 		}
 
@@ -99,7 +107,7 @@ public class TalkClient {
 
 		if (stateMatch(WF_CONNECTED, WF_CONNECTING)) {
 			if (mWaitOut.completed()) {
-				mXmlChannel = new SampleXmlChannel(mConnector);
+				mXmlChannel = new SampleXmlChannel(mWaitableChannel);
 				mStateFlags |= WF_CONNECTED;
 				mWaitOut.clear();
 			}
@@ -121,16 +129,44 @@ public class TalkClient {
 		}
 
 		if (stateMatch(WF_STARTTLS, WF_FEATURE)) {
+			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
+			Packet packet = new Starttls();
 			mStateFlags |= WF_STARTTLS;
+			mXmlChannel.put(packet);
 		}
 
 		if (stateMatch(WF_PROCEED, WF_STARTTLS)) {
-			mStateFlags |= WF_PROCEED;
+			Packet packet = mXmlChannel.get();
+			if (packet.matchTag("proceed")) {
+				mStateFlags |= WF_PROCEED;
+				DEBUG.Print("proceed");
+			}
 		}
 
 		if (stateMatch(WF_HANDSHAKE, WF_PROCEED)) {
-			System.out.println("WF_HANDSHAKE");
+			WaitableSslChannel sslChannel = new WaitableSslChannel(mConnector);
+			try { sslChannel.handshake(); } catch (Exception e) {};
+
+			mWaitableChannel = sslChannel;
+			mWaitableChannel.waitO(mWaitOut);
+
+			mStateFlags &= ~(WF_CONNECTED | WF_FEATURE | WF_HEADER);
 			mStateFlags |= WF_HANDSHAKE;
+		}
+
+		if (stateMatch(WF_PLAINSASL, WF_HANDSHAKE | WF_FEATURE)) {
+			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
+			Packet packet = new PlainSasl("pagxir", "************");
+			mStateFlags |= WF_PLAINSASL;
+			mXmlChannel.put(packet);
+		}
+
+		if (stateMatch(WF_SASLFINISH, WF_PLAINSASL)) {
+			Packet packet = mXmlChannel.get();
+			if (packet.matchTag("success") || packet.matchTag("failure")) {
+				DEBUG.Print(packet.matchTag("success")? "success": "failue");
+				mStateFlags |= WF_SASLFINISH;
+			}
 		}
 	}
 }

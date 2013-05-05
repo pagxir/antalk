@@ -24,12 +24,6 @@ public class SampleXmlChannel {
 		mXmlBuffer.flip();
 	}
 
-	private void tryNextRead() {
-		if (lastRead != -1)
-			mChannel.waitI(mIWait);
-		return;
-	}
-
 	private final SlotWait mIWait = new SlotWait() {
 		public void invoke() {
 
@@ -85,6 +79,12 @@ public class SampleXmlChannel {
 		return;
 	}
 
+	private void tryNextRead() {
+		if (lastRead != -1)
+			mChannel.waitI(mIWait);
+		return;
+	}
+
 	public boolean open(String domain) {
 		long count;
 		String tag = Stream.begin(domain);
@@ -129,7 +129,7 @@ public class SampleXmlChannel {
 	private Packet mPacket = Packet.EMPTY_PACKET;
 	public Packet get() {
 		if (mPacket == Packet.EMPTY_PACKET) {
-			DEBUG.Print("SampleXmlChannel::get");
+			/* DEBUG.Print("SampleXmlChannel::get"); */
 			update();
 		}
 		return mPacket;

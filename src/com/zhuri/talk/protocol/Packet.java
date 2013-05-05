@@ -9,11 +9,11 @@ public class Packet {
 				DocumentBuilderFactory.newInstance();
 	public final static Packet EMPTY_PACKET = new Packet();
 
-	private Packet() {
+	Packet() {
 	}
 
 	private Element mElement;
-	private Packet(Element element) {
+	Packet(Element element) {
 		mElement = element;
 	}
 
