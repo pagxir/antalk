@@ -30,3 +30,6 @@ all: $(LOCAL_SRC_FILES) $(LOCAL_OUT_DIR)
 $(LOCAL_OUT_DIR):
 	mkdir $(LOCAL_OUT_DIR)
 
+test:
+	cd out && java test.TestBox
+

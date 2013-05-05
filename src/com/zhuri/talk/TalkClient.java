@@ -170,8 +170,20 @@ public class TalkClient {
 			Packet packet = mXmlChannel.get();
 			if (packet.matchTag("success") || packet.matchTag("failure")) {
 				DEBUG.Print(packet.matchTag("success")? "success": "failue");
+				mStateFlags |= (packet.matchTag("success")? WF_SUCCESS: 0x0);
 				mStateFlags |= WF_SASLFINISH;
 			}
+		}
+
+		if (stateMatch(WF_LOGINSTEP9, WF_SUCCESS)) {
+			mStateFlags &= ~(WF_CONNECTED | WF_FEATURE | WF_HEADER);
+			mWaitableChannel.waitO(mWaitOut);
+			mStateFlags |= WF_LOGINSTEP9;
+		}
+
+		if (stateMatch(WF_BINDER, WF_LOGINSTEP9| WF_FEATURE)) {
+			DEBUG.Print("start bind");
+			mStateFlags |= WF_BINDER;
 		}
 	}
 }
