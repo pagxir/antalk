@@ -17,6 +17,12 @@ public class Packet {
 		mElement = element;
 	}
 
+	public String getTag() {
+		if (EMPTY_PACKET != this)
+			return mElement.getTagName();
+		return "";
+	}
+
 	public boolean matchTag(String tag) {
 		String tagName;
 		if (EMPTY_PACKET == this)

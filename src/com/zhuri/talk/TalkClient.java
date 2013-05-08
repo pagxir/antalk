@@ -10,8 +10,11 @@ import com.zhuri.net.XyConnector;
 import com.zhuri.net.IConnectable;
 import com.zhuri.slot.IWaitableChannel;
 import com.zhuri.net.WaitableSslChannel;
+import com.zhuri.talk.protocol.Bind;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Stream;
+import com.zhuri.talk.protocol.Session;
+import com.zhuri.talk.protocol.IQPacket;
 import com.zhuri.talk.protocol.Starttls;
 import com.zhuri.talk.protocol.PlainSasl;
 
@@ -21,21 +24,19 @@ public class TalkClient {
 	final static int WF_FEATURE = 0x00000004;
 	final static int WF_PROCEED = 0x00000008;
 	final static int WF_SUCCESS  = 0x00000010;
-	final static int WF_STARTTLS = 0x00000020;
-	final static int WF_QUERY1ST = 0x00000040;
+	final static int WF_LOOPING  = 0x00000020;
+	final static int WF_STARTTLS = 0x00000040;
 	final static int WF_CONNECTED = 0x00000080;
 	final static int WF_HANDSHAKE = 0x00000100;
 	final static int WF_PLAINSASL = 0x00000200;
-	final static int WF_LOGINSTEP9 = 0x00000400;
+	final static int WF_LASTSTART = 0x00000400;
 
-	final static int WF_BINDER = 0x00000800;
 	final static int WF_DESTROY = 0x00020000;
-	final static int WF_SESSION = 0x00001000;
-	final static int WF_PRESENCE = 0x00002000;
 	final static int WF_CONFIGURE = 0x00004000;
 	final static int WF_CONNECTING = 0x00008000;
 	final static int WF_DISCONNECT = 0x00010000;
 	final static int WF_SASLFINISH = 0x00020000;
+	final static int WF_LASTFINISH = 0x00040000;
 
 	final static int WF_FORCETLS   = 0x10000000;
 	final static int WF_ENABLETLS  = 0x20000000;
@@ -45,6 +46,7 @@ public class TalkClient {
 
 	final private int mInterval = 10000;
 	final private Connector mConnector = new XyConnector(XYHOST);
+	final private OutgoingIQManager mIQManager = new OutgoingIQManager();
 
 	final private SlotTimer mKeepalive = new SlotTimer() {
 		public void invoke() {
@@ -159,7 +161,7 @@ public class TalkClient {
 
 		if (stateMatch(WF_PLAINSASL, WF_HANDSHAKE | WF_FEATURE)) {
 			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
-			Packet packet = new PlainSasl("pagxir", "************");
+			Packet packet = new PlainSasl("pagxir", "LrTqS24IFKc6");
 			mStateFlags |= WF_PLAINSASL;
 			mXmlChannel.waitI(mWaitIn);
 			mXmlChannel.put(packet);
@@ -175,16 +177,56 @@ public class TalkClient {
 			}
 		}
 
-		if (stateMatch(WF_LOGINSTEP9, WF_SUCCESS)) {
+		if (stateMatch(WF_LASTSTART, WF_SUCCESS)) {
 			mStateFlags &= ~(WF_CONNECTED | WF_FEATURE | WF_HEADER);
 			mWaitableChannel.waitO(mWaitOut);
-			mStateFlags |= WF_LOGINSTEP9;
+			mStateFlags |= WF_LASTSTART;
 		}
 
-		if (stateMatch(WF_BINDER, WF_LOGINSTEP9| WF_FEATURE)) {
-			DEBUG.Print("start bind");
-			mStateFlags |= WF_BINDER;
+		if (stateMatch(WF_LASTFINISH, WF_LASTSTART| WF_FEATURE)) {
+			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
+			mStateFlags |= WF_LASTFINISH;
+			initializeFinalLogin();
 		}
+
+		if (stateMatch(WF_LOOPING, WF_LASTFINISH)) {
+			mWaitIn.clear();
+			processIncomingPacket();
+			mXmlChannel.waitI(mWaitIn);
+		}
+	}
+
+	private void initializeFinalLogin() {
+		IQPacket packet;
+
+		packet = mIQManager.createPacket(new Bind());
+		packet.setType("set");
+		mXmlChannel.put(packet);
+
+		packet = mIQManager.createPacket(new Session());
+		packet.setType("set");
+		mXmlChannel.put(packet);
+		return;
+	}
+
+	private void processIncomingPacket() {
+		Packet packet = mXmlChannel.get();
+
+		while (packet != Packet.EMPTY_PACKET) {
+			if (packet.matchTag("presence")) {
+				DEBUG.Print("packet TAG: presence");
+			} else if (packet.matchTag("message")) {
+				DEBUG.Print("packet TAG: message");
+			} else if (packet.matchTag("iq")) {
+				DEBUG.Print("packet TAG: iq");
+			} else {
+				DEBUG.Print("unkown TAG: " + packet.getTag());
+			}
+			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
+			packet = mXmlChannel.get();
+		}
+
+		return;
 	}
 }
 
