@@ -9,7 +9,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 
 public class FastXmlVisitor {
-	private Element element;
+	private Element element = null;
 
 	public FastXmlVisitor() {
 	}
@@ -26,6 +26,10 @@ public class FastXmlVisitor {
 		if (node == null)
 			return "";
 		return node.getNodeValue();
+	}
+
+	public boolean isEmpty() {
+		return element == null;
 	}
 
 	public FastXmlVisitor useElement(Element element) {
@@ -140,7 +144,7 @@ public class FastXmlVisitor {
 	}
 
 	public FastXmlVisitor setAttribute(String name, String value) {
-		if (element != null) 
+		if (element != null)
 			element.setAttribute(name, value);
 		return this;
 	}

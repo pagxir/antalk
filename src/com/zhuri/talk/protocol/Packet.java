@@ -12,9 +12,15 @@ public class Packet {
 	Packet() {
 	}
 
-	private Element mElement;
+	Element mElement;
 	Packet(Element element) {
 		mElement = element;
+	}
+
+	public String get(String key) {
+		if (EMPTY_PACKET != this)
+			return mElement.getAttribute(key);
+		return null;
 	}
 
 	public String getTag() {

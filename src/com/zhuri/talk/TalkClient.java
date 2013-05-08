@@ -10,6 +10,7 @@ import com.zhuri.net.XyConnector;
 import com.zhuri.net.IConnectable;
 import com.zhuri.slot.IWaitableChannel;
 import com.zhuri.net.WaitableSslChannel;
+import com.zhuri.talk.protocol.Body;
 import com.zhuri.talk.protocol.Bind;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Stream;
@@ -17,6 +18,7 @@ import com.zhuri.talk.protocol.Session;
 import com.zhuri.talk.protocol.IQPacket;
 import com.zhuri.talk.protocol.Starttls;
 import com.zhuri.talk.protocol.PlainSasl;
+import com.zhuri.talk.protocol.Message;
 import com.zhuri.talk.protocol.Presence;
 
 public class TalkClient {
@@ -45,14 +47,22 @@ public class TalkClient {
 	final private static String LOG_TAG = "TalkClient";
 	final private static String XYHOST  = "112.64.221.141:9418";
 
+	private long mLastActive = 0;
 	final private int mInterval = 10000;
 	final private Connector mConnector = new XyConnector(XYHOST);
 	final private OutgoingIQManager mIQManager = new OutgoingIQManager();
 
 	final private SlotTimer mKeepalive = new SlotTimer() {
+		final private Packet mPresense = new Presence();
+
 		public void invoke() {
-			DEBUG.Print("time out event");
-			routine();
+			if (!stateMatch(WF_LOOPING, WF_LASTFINISH)) {
+				DEBUG.Print("login timeout");
+				//close();
+			} else if (mLastActive + mInterval < System.currentTimeMillis()) {
+				mLastActive = System.currentTimeMillis();
+				mXmlChannel.put(mPresense);
+			}
 			mKeepalive.reset(mInterval);
 			return;
 		}
@@ -161,7 +171,7 @@ public class TalkClient {
 
 		if (stateMatch(WF_PLAINSASL, WF_HANDSHAKE | WF_FEATURE)) {
 			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
-			Packet packet = new PlainSasl("pagxir", "xxxxxxxxxxxxx");
+			Packet packet = new PlainSasl("dupit8", "L8PaPUL1nfQT");
 			mStateFlags |= WF_PLAINSASL;
 			mXmlChannel.waitI(mWaitIn);
 			mXmlChannel.put(packet);
@@ -213,21 +223,42 @@ public class TalkClient {
 		return;
 	}
 
+	private void processIncomingPresence(Packet packet) {
+		return;
+	}
+
+	private void processIncomingMessage(Packet packet) {
+		Message reply = new Message();
+		Message message = new Message(packet);
+
+		if (message.hasBody()) {
+			reply.setTo(message.getFrom());
+			reply.add(new Body("Hello World"));
+			mXmlChannel.put(reply);
+		}
+		return;
+	}
+
+	private void processIncomingIQ(Packet packet) {
+		return;
+	}
+
 	private void processIncomingPacket() {
 		Packet packet = mXmlChannel.get();
 
 		while (packet != Packet.EMPTY_PACKET) {
 			if (packet.matchTag("presence")) {
-				DEBUG.Print("packet TAG: presence");
+				processIncomingPresence(packet);
 			} else if (packet.matchTag("message")) {
-				DEBUG.Print("packet TAG: message");
+				processIncomingMessage(packet);
 			} else if (packet.matchTag("iq")) {
-				DEBUG.Print("packet TAG: iq");
+				processIncomingIQ(packet);
 			} else {
 				DEBUG.Print("unkown TAG: " + packet.getTag());
 			}
-			DEBUG.Print("TalkClient", packet.toString());
+			DEBUG.Print("INCOMING", packet.toString());
 			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
+			mLastActive = System.currentTimeMillis();
 			packet = mXmlChannel.get();
 		}
 
