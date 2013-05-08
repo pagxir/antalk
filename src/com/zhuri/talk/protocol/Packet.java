@@ -23,12 +23,17 @@ public class Packet {
 		return "";
 	}
 
+	public String toString() {
+		if (EMPTY_PACKET != this)
+			return FastXmlVisitor.fastFormat(mElement);
+		return super.toString();
+	}
+
 	public boolean matchTag(String tag) {
 		String tagName;
 		if (EMPTY_PACKET == this)
 			return false;
 		tagName = mElement.getTagName();
-		System.out.println("TAG# " + tag + " " + tagName.replaceAll(".*:", ""));
 		return tagName.replaceAll(".*:", "").equals(tag);
 	}
 

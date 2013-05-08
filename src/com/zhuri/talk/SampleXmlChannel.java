@@ -116,7 +116,7 @@ public class SampleXmlChannel {
 		long count;
 		String content = packet.toString();
 
-		DEBUG.Print("packet: " + content);
+		DEBUG.Print("OUTGOING", content);
 		try {
 			count = mChannel.write(ByteBuffer.wrap(content.getBytes()));
 		} catch (IOException e) {

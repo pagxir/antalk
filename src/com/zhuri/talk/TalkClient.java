@@ -17,6 +17,7 @@ import com.zhuri.talk.protocol.Session;
 import com.zhuri.talk.protocol.IQPacket;
 import com.zhuri.talk.protocol.Starttls;
 import com.zhuri.talk.protocol.PlainSasl;
+import com.zhuri.talk.protocol.Presence;
 
 public class TalkClient {
 	final static int WF_RESOLV = 0x00000001;
@@ -68,7 +69,6 @@ public class TalkClient {
 
 	final private SlotWait mWaitIn = new SlotWait() {
 		public void invoke() {
-			DEBUG.Print("input event");
 			mKeepalive.reset(mInterval);
 			routine();
 			return;
@@ -161,7 +161,7 @@ public class TalkClient {
 
 		if (stateMatch(WF_PLAINSASL, WF_HANDSHAKE | WF_FEATURE)) {
 			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
-			Packet packet = new PlainSasl("pagxir", "LrTqS24IFKc6");
+			Packet packet = new PlainSasl("pagxir", "xxxxxxxxxxxxx");
 			mStateFlags |= WF_PLAINSASL;
 			mXmlChannel.waitI(mWaitIn);
 			mXmlChannel.put(packet);
@@ -197,6 +197,7 @@ public class TalkClient {
 	}
 
 	private void initializeFinalLogin() {
+		Packet presense;
 		IQPacket packet;
 
 		packet = mIQManager.createPacket(new Bind());
@@ -206,6 +207,9 @@ public class TalkClient {
 		packet = mIQManager.createPacket(new Session());
 		packet.setType("set");
 		mXmlChannel.put(packet);
+
+		presense = new Presence();
+		mXmlChannel.put(presense);
 		return;
 	}
 
@@ -222,6 +226,7 @@ public class TalkClient {
 			} else {
 				DEBUG.Print("unkown TAG: " + packet.getTag());
 			}
+			DEBUG.Print("TalkClient", packet.toString());
 			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
 			packet = mXmlChannel.get();
 		}
