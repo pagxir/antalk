@@ -178,12 +178,18 @@ public class WaitableSslChannel implements IWaitableChannel {
 				produced += result.bytesProduced();
 			} while (status == SSLEngineResult.HandshakeStatus.NEED_WRAP);
 
-			DEBUG.Assert(!src.hasRemaining());
+			if (src.hasRemaining()) {
+				DEBUG.Print("WaitableSslChannel", "write error");
+				return -1;
+			}
 
 			writeBuffer.flip();
 			produced = channel.write(writeBuffer);
 
-			DEBUG.Assert(!writeBuffer.hasRemaining());
+			if (writeBuffer.hasRemaining()) {
+				DEBUG.Print("WaitableSslChannel", "write error");
+				return -1;
+			}
 			writeBuffer.clear();
 			return produced;
 		}

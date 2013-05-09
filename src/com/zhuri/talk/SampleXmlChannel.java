@@ -14,6 +14,7 @@ public class SampleXmlChannel {
 	public final static int XML_PEEK = 0x02;
 
 	private long lastRead = 0;
+	private boolean mOpenSent = false;
 	private boolean mXmlOpened = false;
 	private IWaitableChannel mChannel = null;
 	private final ByteBuffer  mXmlBuffer = ByteBuffer.allocate(65536);
@@ -79,9 +80,18 @@ public class SampleXmlChannel {
 		return;
 	}
 
+	public boolean disconnected() {
+		/* connection is disconnected if lastRead == -1 */
+		return (lastRead == -1);
+	}
+
 	private void tryNextRead() {
-		if (lastRead != -1)
+		if (lastRead != -1) {
 			mChannel.waitI(mIWait);
+			return;
+		}
+		mISlot.wakeup();
+		mOSlot.wakeup();
 		return;
 	}
 
@@ -96,17 +106,20 @@ public class SampleXmlChannel {
 			return false;
 		}
 
+		mOpenSent = true;
 		return true;
 	}
 
 	public void close() {
 		long count;
-		String tag = Stream.end();
 
-		try {
-			count = mChannel.write(ByteBuffer.wrap(tag.getBytes()));
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (mOpenSent) {
+			String tag = Stream.end();
+			try {
+				count = mChannel.write(ByteBuffer.wrap(tag.getBytes()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		return;
@@ -121,6 +134,7 @@ public class SampleXmlChannel {
 			count = mChannel.write(ByteBuffer.wrap(content.getBytes()));
 		} catch (IOException e) {
 			e.printStackTrace();
+			lastRead = -1;
 			return false;
 		}
 

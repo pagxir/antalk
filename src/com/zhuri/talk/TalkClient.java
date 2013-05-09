@@ -27,7 +27,6 @@ public class TalkClient {
 	final static int WF_FEATURE = 0x00000004;
 	final static int WF_PROCEED = 0x00000008;
 	final static int WF_SUCCESS  = 0x00000010;
-	final static int WF_LOOPING  = 0x00000020;
 	final static int WF_STARTTLS = 0x00000040;
 	final static int WF_CONNECTED = 0x00000080;
 	final static int WF_HANDSHAKE = 0x00000100;
@@ -56,17 +55,33 @@ public class TalkClient {
 		final private Packet mPresense = new Presence();
 
 		public void invoke() {
-			if (!stateMatch(WF_LOOPING, WF_LASTFINISH)) {
+			boolean isAlive = true;
+			if (!stateMatch(WF_DISCONNECT, WF_LASTFINISH)) {
 				DEBUG.Print("login timeout");
-				//close();
+				disconnect();
 			} else if (mLastActive + mInterval < System.currentTimeMillis()) {
 				mLastActive = System.currentTimeMillis();
-				mXmlChannel.put(mPresense);
+				isAlive = mXmlChannel.put(mPresense);
 			}
-			mKeepalive.reset(mInterval);
+
+			if (isAlive == true) {
+				mKeepalive.reset(mInterval);
+			} else {
+				disconnect();
+			}
 			return;
 		}
 	};
+
+	final private boolean disconnect() {
+		mStateFlags |= WF_DISCONNECT;
+		DEBUG.Print("disconnect");
+		mXmlChannel.close();
+		mKeepalive.clean();
+		mWaitOut.clean();
+		mWaitIn.clean();
+		return true;
+	}
 
 	final private SlotWait mWaitOut = new SlotWait() {
 		public void invoke() {
@@ -199,7 +214,7 @@ public class TalkClient {
 			initializeFinalLogin();
 		}
 
-		if (stateMatch(WF_LOOPING, WF_LASTFINISH)) {
+		if (stateMatch(WF_DISCONNECT, WF_LASTFINISH)) {
 			mWaitIn.clear();
 			processIncomingPacket();
 			mXmlChannel.waitI(mWaitIn);
