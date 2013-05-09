@@ -48,8 +48,14 @@ public class TalkClient {
 
 	private long mLastActive = 0;
 	final private int mInterval = 10000;
+	final private SlotSlot mESlot = new SlotSlot();
 	final private Connector mConnector = new XyConnector(XYHOST);
 	final private OutgoingIQManager mIQManager = new OutgoingIQManager();
+
+	final public void onDisconnect(SlotWait wait) {
+		mESlot.record(wait);
+		return;
+	}
 
 	final private SlotTimer mKeepalive = new SlotTimer() {
 		final private Packet mPresense = new Presence();
@@ -73,13 +79,15 @@ public class TalkClient {
 		}
 	};
 
-	final private boolean disconnect() {
+	final public boolean disconnect() {
 		mStateFlags |= WF_DISCONNECT;
 		DEBUG.Print("disconnect");
 		mXmlChannel.close();
 		mKeepalive.clean();
 		mWaitOut.clean();
 		mWaitIn.clean();
+		mESlot.wakeup();
+		try { mConnector.close(); } catch (IOException e) { e.printStackTrace(); }
 		return true;
 	}
 
