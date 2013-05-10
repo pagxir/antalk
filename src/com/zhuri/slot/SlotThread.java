@@ -543,6 +543,14 @@ public class SlotThread {
 	}
 
 	static class Timer extends Wait {
+		public Timer() {
+			super();
+		}
+
+		public Timer(Runnable r) {
+			super(r);
+		}
+
 		long lState;
 	}
 

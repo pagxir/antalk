@@ -49,11 +49,49 @@ public class TalkClient {
 	private long mLastActive = 0;
 	final private int mInterval = 10000;
 	final private SlotSlot mESlot = new SlotSlot();
-	final private Connector mConnector = new XyConnector(XYHOST);
+	final private Connector mConnector = new Connector();
 	final private OutgoingIQManager mIQManager = new OutgoingIQManager();
 
-	final public void onDisconnect(SlotWait wait) {
-		mESlot.record(wait);
+	final public Packet get() {
+		Packet packet;
+		boolean msgIsLooping = stateMatch(WF_DISCONNECT, WF_LASTFINISH);
+
+		packet = msgIsLooping? mXmlChannel.get(): null;
+		if (packet != null && packet != Packet.EMPTY_PACKET)
+			mLastActive = System.currentTimeMillis();
+
+		return packet;
+	}
+
+	final public void put(Packet packet) {
+		boolean msgIsLooping = stateMatch(WF_DISCONNECT, WF_LASTFINISH);
+
+		if (msgIsLooping)
+			mXmlChannel.put(packet);
+
+		return;
+	}
+
+	final public boolean isStreamClosed() {
+		return stateMatch(0, WF_DISCONNECT);
+	}
+
+	final public void mark() {
+		mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
+		return;
+	}
+
+	final public void waitI(SlotWait wait) {
+		boolean msgIsLooping = stateMatch(WF_DISCONNECT, WF_LASTFINISH);
+
+		if (msgIsLooping)
+			mXmlChannel.waitI(wait);
+		else
+			mESlot.record(wait);
+		return;
+	}
+
+	final private void updateFeature(Packet packet) {
 		return;
 	}
 
@@ -102,8 +140,12 @@ public class TalkClient {
 
 	final private SlotWait mWaitIn = new SlotWait() {
 		public void invoke() {
+			boolean msgIsLooping = stateMatch(WF_DISCONNECT, WF_LASTFINISH);
 			mKeepalive.reset(mInterval);
-			routine();
+			if (msgIsLooping)
+				mESlot.wakeup();
+			else
+				routine();
 			return;
 		}
 	};
@@ -120,10 +162,6 @@ public class TalkClient {
 	public void start() {
 		mStateFlags |= WF_CONFIGURE;
 		routine();
-		return;
-	}
-
-	public void updateFeature(Packet packet) {
 		return;
 	}
 
@@ -223,9 +261,8 @@ public class TalkClient {
 		}
 
 		if (stateMatch(WF_DISCONNECT, WF_LASTFINISH)) {
-			mWaitIn.clear();
-			processIncomingPacket();
-			mXmlChannel.waitI(mWaitIn);
+			DEBUG.Print("TalkClient", "connections connected");
+			mESlot.wakeup();
 		}
 	}
 
@@ -246,45 +283,15 @@ public class TalkClient {
 		return;
 	}
 
-	private void processIncomingPresence(Packet packet) {
+	public void processIncomingPresence(Packet packet) {
 		return;
 	}
 
-	private void processIncomingMessage(Packet packet) {
-		Message reply = new Message();
-		Message message = new Message(packet);
-
-		if (message.hasBody()) {
-			reply.setTo(message.getFrom());
-			reply.add(new Body("Hello World"));
-			mXmlChannel.put(reply);
-		}
+	public void processIncomingMessage(Packet packet) {
 		return;
 	}
 
-	private void processIncomingIQ(Packet packet) {
-		return;
-	}
-
-	private void processIncomingPacket() {
-		Packet packet = mXmlChannel.get();
-
-		while (packet != Packet.EMPTY_PACKET) {
-			if (packet.matchTag("presence")) {
-				processIncomingPresence(packet);
-			} else if (packet.matchTag("message")) {
-				processIncomingMessage(packet);
-			} else if (packet.matchTag("iq")) {
-				processIncomingIQ(packet);
-			} else {
-				DEBUG.Print("unkown TAG: " + packet.getTag());
-			}
-			DEBUG.Print("INCOMING", packet.toString());
-			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
-			mLastActive = System.currentTimeMillis();
-			packet = mXmlChannel.get();
-		}
-
+	public void processIncomingIQ(Packet packet) {
 		return;
 	}
 }

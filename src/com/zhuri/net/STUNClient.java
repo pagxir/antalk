@@ -1,4 +1,4 @@
-package test;
+package com.zhuri.net;
 
 import java.net.*;
 import java.nio.*;
@@ -9,7 +9,7 @@ import com.zhuri.net.*;
 import com.zhuri.util.*;
 import com.zhuri.slot.*;
 
-class StunClient {
+public class STUNClient {
 
 	final static short ZERO_PADDING = 0x0000;
 	final static short BINDING_REQUEST = 0x0001;
@@ -30,7 +30,7 @@ class StunClient {
 	private InetSocketAddress soaddr = null;
 	private InetSocketAddress stunServer = null;
 
-	public StunClient(DatagramChannel channel, String domain, int port) {
+	public STUNClient(DatagramChannel channel, String domain, int port) {
 
 		try {
 			this.channel = channel;
@@ -95,6 +95,11 @@ class StunClient {
 		slchannel.wantIn(mIWait);
 		slep.record(wait);
 		redo.reset(1000);
+	}
+
+	public void requestMapping(SlotWait wait) {
+		ByteBuffer b = requestMapping();
+		send(b, wait);
 	}
 
 	public ByteBuffer requestMapping() {
@@ -260,14 +265,13 @@ class StunClient {
 	}
 }
 
-public class TestStunClient {
-	private StunClient client;
+class TestSTUNClient {
+	private STUNClient client;
 
-	public TestStunClient() {
+	public TestSTUNClient() {
 		try {
 			DatagramChannel datagram = DatagramChannel.open();
-			client = new StunClient(datagram, "stun.l.google.com", 19302);
-			StunClient.getLocal();
+			client = new STUNClient(datagram, "stun.l.google.com", 19302);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -281,6 +285,7 @@ public class TestStunClient {
 
 	public void start() {
 		ByteBuffer b = client.requestMapping();
+		STUNClient.getLocal();
 		client.send(b, w);
 	}
 }

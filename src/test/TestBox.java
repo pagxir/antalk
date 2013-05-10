@@ -10,9 +10,6 @@ public class TestBox {
 			System.out.println("start https test");
 
 			try {
-				TestStunClient stun = new TestStunClient();
-				stun.start();
-
 				TestTalkClient client = new TestTalkClient();
 				client.start();
 			} catch (Exception e) {
