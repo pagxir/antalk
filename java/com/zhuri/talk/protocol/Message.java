@@ -28,7 +28,7 @@ public class Message extends Packet {
 
 	public Message add(Packet packet) {
 		Element e = FastXmlVisitor.fastFormat(packet.toString());
-		mElement.appendChild(mElement.getOwnerDocument().importNode(e, true));
+		mElement.appendChild(mElement.getOwnerDocument().adoptNode(e));
 		return this;
 	}
 

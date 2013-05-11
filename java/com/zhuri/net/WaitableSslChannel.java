@@ -221,15 +221,6 @@ public class WaitableSslChannel implements IWaitableChannel {
 
 				DEBUG.Print(LOG_TAG, "HandshakeStatus " + status);
 				switch (status) {
-					case FINISHED:
-						if (readBuffer.hasRemaining())
-							mInSlot.wakeup();
-						else if (!mInSlot.isEmpty())
-							channel.waitI(mInWait);
-						mOutSlot.wakeup();
-						ioProxy = ProxyIO;
-						return;
-
 					case NEED_TASK:
 						//{
 						Runnable task = engine.getDelegatedTask();
@@ -287,7 +278,6 @@ public class WaitableSslChannel implements IWaitableChannel {
 						} while (status == HandshakeStatus.NEED_UNWRAP);
 
 						readBuffer.compact();
-						readBuffer.limit(20000);
 
 						if (bytesConsumed == 0) {
 							DEBUG.Assert(status == HandshakeStatus.NEED_UNWRAP);
@@ -297,21 +287,27 @@ public class WaitableSslChannel implements IWaitableChannel {
 						break;
 						//}
 
-					case NOT_HANDSHAKING:
-						/* TODO: NOT_HANDSHAKING */
+					default:
+						status = engine.getHandshakeStatus();
 						break;
 				}
-
 			}
 
 		} catch (Exception e) {
 			/* TODO: Handshake Exception. */
 			e.printStackTrace();
+			ioProxy = NormalIO;
+			mOutSlot.wakeup();
+			mInSlot.wakeup();
+			return;
 		}
 
-		ioProxy = NormalIO;
+		if (readBuffer.hasRemaining())
+			mInSlot.wakeup();
+		else if (!mInSlot.isEmpty())
+			channel.waitI(mInWait);
 		mOutSlot.wakeup();
-		mInSlot.wakeup();
+		ioProxy = ProxyIO;
 		return;
 	}
 
