@@ -44,12 +44,12 @@ public class TalkClient {
 	final static int WF_ENABLETLS  = 0x20000000;
 
 	final private static String LOG_TAG = "TalkClient";
-	final private static String XYHOST  = "112.64.221.141:9418";
+	final private static String XYHOST  = "192.168.42.129:1800";
 
 	private long mLastActive = 0;
 	final private int mInterval = 10000;
 	final private SlotSlot mESlot = new SlotSlot();
-	final private Connector mConnector = new Connector();
+	final private Connector mConnector = new XyConnector(XYHOST);
 	final private OutgoingIQManager mIQManager = new OutgoingIQManager();
 
 	final public Packet get() {

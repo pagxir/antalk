@@ -122,6 +122,8 @@ public class SampleXmlChannel {
 			}
 		}
 
+		mOSlot.wakeup();
+		mISlot.wakeup();
 		return;
 	}
 
