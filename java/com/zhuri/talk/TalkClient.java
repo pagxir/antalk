@@ -49,7 +49,7 @@ public class TalkClient {
 	private long mLastActive = 0;
 	final private int mInterval = 10000;
 	final private SlotSlot mESlot = new SlotSlot();
-	final private Connector mConnector = new XyConnector(XYHOST);
+	final private Connector mConnector = new Connector();
 	final private OutgoingIQManager mIQManager = new OutgoingIQManager();
 
 	final public Packet get() {
@@ -103,6 +103,7 @@ public class TalkClient {
 			if (!stateMatch(WF_DISCONNECT, WF_LASTFINISH)) {
 				DEBUG.Print("login timeout");
 				disconnect();
+				return;
 			} else if (mLastActive + mInterval < System.currentTimeMillis()) {
 				mLastActive = System.currentTimeMillis();
 				isAlive = mXmlChannel.put(mPresense);
@@ -118,14 +119,16 @@ public class TalkClient {
 	};
 
 	final public boolean disconnect() {
-		mStateFlags |= WF_DISCONNECT;
-		DEBUG.Print("disconnect");
-		mXmlChannel.close();
-		mKeepalive.clean();
-		mWaitOut.clean();
-		mWaitIn.clean();
-		mESlot.wakeup();
-		try { mConnector.close(); } catch (IOException e) { e.printStackTrace(); }
+		if (stateMatch(WF_DISCONNECT, WF_LASTFINISH)) {
+			try { mConnector.close(); } catch (IOException e) { e.printStackTrace(); }
+			mStateFlags |= WF_DISCONNECT;
+			DEBUG.Print("disconnect");
+			mXmlChannel.close();
+			mKeepalive.clean();
+			mWaitOut.clean();
+			mWaitIn.clean();
+			mESlot.wakeup();
+		}
 		return true;
 	}
 

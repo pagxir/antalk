@@ -39,17 +39,14 @@ public class SlotThread {
 		}
 	}
 
-	static boolean quited = false;
 	public static void quit() {
-		quited = true;
+		requestquited = true;
 		if (selector != null)
 			selector.wakeup();
 		return;
 	}
 
-	static boolean signaled = false;
 	public static void signal() {
-		signaled = true;
 		if (selector != null)
 			selector.wakeup();
 		return;
@@ -171,7 +168,6 @@ public class SlotThread {
 	static Slot stopslot =  new Slot();
 
 	static int waitrescan = 0;
-	static boolean nonblock = false;
 	static boolean requestquited = false;
 
 	public static void atstop(Wait wait) {
@@ -227,7 +223,7 @@ public class SlotThread {
 			iter.cancel();
 			if (iter == marker) {
 				if (waitrescan == 0) {
-					if (requestquited || nonblock) {
+					if (requestquited) {
 						marker.cancel();
 						waitrescan = 0;
 						return false;
@@ -538,8 +534,29 @@ public class SlotThread {
 	}
 
 	static class Async extends Wait {
-		boolean signaled = false;
+		private Runnable runnable;
+		private boolean signaled = false;
 
+		public Async(Runnable r) {
+			runnable = r;
+		}
+
+		final public void invoke() {
+			if (signaled)
+				runnable.run();
+		}
+
+		/* this method can call from other thread. */
+		public void toggle() {
+			signaled = true;
+			SlotThread.signal();
+		}
+
+		public void setup() {
+			flags &= ~WT_EXTERNAL;
+			flags |= WT_WAITSCAN;
+			schedule();
+		}
 	}
 
 	static class Timer extends Wait {

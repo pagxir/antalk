@@ -1,10 +1,8 @@
 package com.zhuri.slot;
 
-public class SlotAsync extends SlotThread.Wait {
+public class SlotAsync extends SlotThread.Async {
 
-	/* this method can call from other thread. */
-	public void toggle() {
-		SlotThread.signaled = true;
-		SlotThread.signal();
+	public SlotAsync(Runnable r) {
+		super(r);
 	}
 }

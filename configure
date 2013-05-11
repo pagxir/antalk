@@ -1,4 +1,4 @@
-android update project -p `pwd` -t android-9
+android update project -p `pwd` -t android-10
 
 cat << EOF >> local.properties
 #key.store = /home/level/android-toolkit/android.keystore

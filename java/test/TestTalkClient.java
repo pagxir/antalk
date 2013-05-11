@@ -112,6 +112,13 @@ public class TestTalkClient {
 		}
 	};
 
+	public void close() {
+		if (mClient != null)
+			mClient.disconnect();
+		mDisconnect.wakeup();
+		return;
+	}
+
 	public void start() {
 		mClient = new TalkClient();
 		mClient.waitI(onReceive);

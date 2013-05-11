@@ -40,10 +40,14 @@ public class SampleXmlChannel {
 			}
 
 			mXmlBuffer.mark();
-			if (mXmlOpened == false
-				&& mXmlParser.open(mXmlBuffer)) {
-				mXmlOpened = true;
-				mXmlBuffer.mark();
+			if (mXmlOpened == false) {
+				try {
+					mXmlOpened = mXmlParser.open(mXmlBuffer);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				if (mXmlOpened) mXmlBuffer.mark();
 			}
 
 			if (mXmlOpened == false) {
@@ -165,8 +169,8 @@ public class SampleXmlChannel {
 				return true;
 			}
 		} catch (Exception e) {
+			/* e.printStackTrace(); */
 			mXmlBuffer.reset();
-			//e.printStackTrace();
 			return false;
 		}
 
