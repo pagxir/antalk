@@ -56,8 +56,8 @@ public class TalkClient {
 		Packet packet;
 		boolean msgIsLooping = stateMatch(WF_DISCONNECT, WF_LASTFINISH);
 
-		packet = msgIsLooping? mXmlChannel.get(): null;
-		if (packet != null && packet != Packet.EMPTY_PACKET)
+		packet = msgIsLooping? mXmlChannel.get(): Packet.EMPTY_PACKET;
+		if (packet != Packet.EMPTY_PACKET)
 			mLastActive = System.currentTimeMillis();
 
 		return packet;
