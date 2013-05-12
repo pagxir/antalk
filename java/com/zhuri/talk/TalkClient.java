@@ -138,6 +138,11 @@ public class TalkClient {
 			DEBUG.Print("output event");
 			mKeepalive.reset(mInterval);
 			routine();
+
+			if (mXmlChannel.disconnected()) {
+				mStateFlags |= WF_LASTFINISH;
+				disconnect();
+			}
 			return;
 		}
 	};
@@ -150,6 +155,11 @@ public class TalkClient {
 				mESlot.wakeup();
 			else
 				routine();
+
+			if (mXmlChannel.disconnected()) {
+				mStateFlags |= WF_LASTFINISH;
+				disconnect();
+			}
 			return;
 		}
 	};

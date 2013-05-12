@@ -35,6 +35,8 @@ public class SampleXmlChannel {
 				mXmlBuffer.flip();
 			} catch (IOException e) {
 				e.printStackTrace();
+				mISlot.wakeup();
+				mOSlot.wakeup();
 				lastRead = -1;
 				return;
 			}
@@ -107,6 +109,9 @@ public class SampleXmlChannel {
 			count = mChannel.write(ByteBuffer.wrap(tag.getBytes()));
 		} catch (IOException e) {
 			e.printStackTrace();
+			mISlot.wakeup();
+			mOSlot.wakeup();
+			lastRead = -1;
 			return false;
 		}
 
@@ -144,6 +149,7 @@ public class SampleXmlChannel {
 			return false;
 		}
 
+		DEBUG.Print("OUTGOING", "put count = " + count);
 		return true;
 	}
 

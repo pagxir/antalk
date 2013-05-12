@@ -107,7 +107,7 @@ public class TestTalkClient {
 			/* release connect resource than retry */
 			mDisconnect.wakeup();
 			mClient.disconnect();
-			start();
+			mDelay.reset(5000);
 			return;
 		}
 	};
@@ -116,8 +116,16 @@ public class TestTalkClient {
 		if (mClient != null)
 			mClient.disconnect();
 		mDisconnect.wakeup();
+		mDelay.clean();
 		return;
 	}
+
+	final private SlotTimer mDelay = new SlotTimer() {
+		public void invoke() {
+			start();
+			return;
+		}
+	};
 
 	public void start() {
 		mClient = new TalkClient();
