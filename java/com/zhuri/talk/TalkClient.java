@@ -102,7 +102,7 @@ public class TalkClient {
 			boolean isAlive = true;
 			DEBUG.Print("keep alive");
 			if (!stateMatch(WF_DISCONNECT, WF_LASTFINISH) ||
-					mLastActive + mInterval < System.currentTimeMillis()) {
+					mLastActive + 2 * mInterval < System.currentTimeMillis()) {
 				disconnect();
 				return;
 			} else if (mLastActive + mInterval < System.currentTimeMillis()) {
