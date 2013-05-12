@@ -164,7 +164,6 @@ public class WaitableSslChannel implements IWaitableChannel {
 			DEBUG.Print(LOG_TAG, "Status: " + result.getStatus());
 */
 			readBuffer.compact();
-			readBuffer.limit(20000);
 			return (readed == -1 && produced == 0)? -1: produced;
 		}
 

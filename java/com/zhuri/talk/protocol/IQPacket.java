@@ -40,8 +40,7 @@ public class IQPacket extends Packet {
 			builder += "to='" + mTo + "' ";
 		if (mFrom != null)
 			builder += "from='" + mFrom + "' ";
-		if (mType != null)
-			builder += "type='" + mType + "' ";
+		builder += "type='" + (mType == null? "get": mType) + "' ";
 		builder += ">";
 		builder += mQuery.toString();
 		builder += "</iq>";

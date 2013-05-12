@@ -20,6 +20,7 @@ import com.zhuri.talk.protocol.Starttls;
 import com.zhuri.talk.protocol.PlainSasl;
 import com.zhuri.talk.protocol.Message;
 import com.zhuri.talk.protocol.Presence;
+import com.zhuri.talk.protocol.Keepalive;
 
 public class TalkClient {
 	final static int WF_RESOLV = 0x00000001;
@@ -96,17 +97,17 @@ public class TalkClient {
 	}
 
 	final private SlotTimer mKeepalive = new SlotTimer() {
-		final private Packet mPresense = new Presence();
 
 		public void invoke() {
 			boolean isAlive = true;
-			if (!stateMatch(WF_DISCONNECT, WF_LASTFINISH)) {
-				DEBUG.Print("login timeout");
+			DEBUG.Print("keep alive");
+			if (!stateMatch(WF_DISCONNECT, WF_LASTFINISH) ||
+					mLastActive + mInterval < System.currentTimeMillis()) {
 				disconnect();
 				return;
 			} else if (mLastActive + mInterval < System.currentTimeMillis()) {
-				mLastActive = System.currentTimeMillis();
-				isAlive = mXmlChannel.put(mPresense);
+				Packet packet = mIQManager.createPacket(new Keepalive());
+				isAlive = mXmlChannel.put(packet);
 			}
 
 			if (isAlive == true) {
@@ -120,7 +121,6 @@ public class TalkClient {
 
 	final public boolean disconnect() {
 		if (stateMatch(WF_DISCONNECT, WF_LASTFINISH)) {
-			try { mConnector.close(); } catch (IOException e) { e.printStackTrace(); }
 			mStateFlags |= WF_DISCONNECT;
 			DEBUG.Print("disconnect");
 			mXmlChannel.close();
@@ -128,6 +128,7 @@ public class TalkClient {
 			mWaitOut.clean();
 			mWaitIn.clean();
 			mESlot.wakeup();
+			try { mConnector.close(); } catch (IOException e) { e.printStackTrace(); }
 		}
 		return true;
 	}
@@ -170,6 +171,7 @@ public class TalkClient {
 
 	private void routine() {
 		if (stateMatch(WF_RESOLV, WF_CONFIGURE)) {
+			mLastActive = System.currentTimeMillis();
 			mWaitableChannel = mConnector;
 			mStateFlags |= WF_RESOLV;
 		}
