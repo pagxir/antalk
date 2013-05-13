@@ -74,8 +74,19 @@ public class TestTalkClient {
 		Message message = new Message(packet);
 
 		if (message.hasBody()) {
-			ReplyContext context = new ReplyContext(packet);
-			context.start();
+			String msg = message.getContent();
+			if (msg == null || msg.equals("")) {
+				DEBUG.Print("MSG+++ ");
+				ReplyContext context = new ReplyContext(packet);
+				context.start();
+			} else if (msg.startsWith("stun ")) {
+				ReplyContext context = new ReplyContext(packet);
+				context.start();
+			} else if (msg.startsWith("am ")) {
+				DEBUG.Print("am ");
+			} else {
+				DEBUG.Print("MSG " + msg);
+			}
 		}
 	}
 

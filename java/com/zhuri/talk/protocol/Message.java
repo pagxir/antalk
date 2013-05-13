@@ -17,7 +17,7 @@ public class Message extends Packet {
 
 	public boolean hasBody() {
 		FastXmlVisitor visitor = new FastXmlVisitor(mElement);
-		return visitor.getElement("body").isEmpty();
+		return !visitor.getElement("body").isEmpty();
 	}
 
 	public Message setTo(String to) {
@@ -40,6 +40,11 @@ public class Message extends Packet {
 	public String getTo() {
 		FastXmlVisitor visitor = new FastXmlVisitor(mElement);
 		return visitor.getAttribute("to");
+	}
+
+	public String getContent() {
+		FastXmlVisitor visitor = new FastXmlVisitor(mElement);
+		return visitor.getElement("body").getValue();
 	}
 
 	public String toString() {

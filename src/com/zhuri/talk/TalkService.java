@@ -1,6 +1,5 @@
 package com.zhuri.talk;
 
-import test.TestTalkClient;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +9,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.zhuri.slot.*;
+import com.zhuri.talk.TalkRobot;
 
 public class TalkService extends Service implements Runnable {
 	private Thread worker = null;
@@ -58,7 +58,7 @@ public class TalkService extends Service implements Runnable {
 	}
 
 	private SlotAsync mAsync;
-	private TestTalkClient mClient;
+	private TalkRobot mClient;
 
 	final private Runnable mQuit = new Runnable() {
 		public void run() {
@@ -69,7 +69,7 @@ public class TalkService extends Service implements Runnable {
 	};
 
 	private void initialize() {
-		mClient = new TestTalkClient();
+		mClient = new TalkRobot(this);
 		mClient.start();
 
 		mAsync = new SlotAsync(mQuit);

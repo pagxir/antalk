@@ -48,7 +48,7 @@ public class TalkClient {
 	final private static String XYHOST  = "192.168.42.129:1800";
 
 	private long mLastActive = 0;
-	final private int mInterval = 10000;
+	final private int mInterval = 30000;
 	final private SlotSlot mESlot = new SlotSlot();
 	final private Connector mConnector = new Connector();
 	final private OutgoingIQManager mIQManager = new OutgoingIQManager();
