@@ -1,4 +1,4 @@
-package com.zhuri.talk;
+package com.zhuri.andtalk;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;

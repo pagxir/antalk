@@ -1,4 +1,4 @@
-package com.zhuri.talk;
+package com.zhuri.andtalk;
 
 import android.app.Service;
 import android.content.Context;
@@ -9,7 +9,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.zhuri.slot.*;
-import com.zhuri.talk.TalkRobot;
+import com.zhuri.andtalk.TalkRobot;
 
 public class TalkService extends Service implements Runnable {
 	private Thread worker = null;
