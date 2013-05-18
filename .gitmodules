@@ -1,0 +1,3 @@
+[submodule "jni/libpstcp"]
+	path = jni/libpstcp
+	url = git@github.com:pagxir/usertcp.git

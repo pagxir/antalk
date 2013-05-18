@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 
+APP_PLATFORM := android-8
+
 # This is the default Application.mk that is being used for applications
 # that don't provide $PROJECT_PATH/jni/Application.mk
 #

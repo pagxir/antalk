@@ -26,6 +26,7 @@ import android.view.MenuItem;
 public class TalkActivity extends Activity implements OnClickListener {
 	static final String LOG_TAG ="TalkActivity";
 	private static final Intent talkService = new Intent("com.zhuri.service.TALK");
+	private static final Intent pstcpService = new Intent("com.zhuri.service.PSTCP");
 
 	/** Called when the activity is first created. */
 	@Override
@@ -49,11 +50,13 @@ public class TalkActivity extends Activity implements OnClickListener {
 	public void onClick(View view) {
 		switch (view.getId()) {
 			case R.id.start:
+				startService(pstcpService);
 				startService(talkService);
 				break;
 
 			case R.id.stop:
 				stopService(talkService);
+				stopService(pstcpService);
 				break;
 
 			default:
