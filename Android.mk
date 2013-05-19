@@ -5,7 +5,7 @@ LOCAL_SRC_FILES := $(call all-java-files-under, src)
 
 LOCAL_CERTIFICATE := platform
 LOCAL_PACKAGE_NAME := antalk
-LOCAL_JNI_SHARED_LIBRARIES := libmad libshine
+LOCAL_JNI_SHARED_LIBRARIES := libmad libshine libpstcp
 
 include $(BUILD_PACKAGE)
 
