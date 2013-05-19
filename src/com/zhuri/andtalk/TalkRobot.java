@@ -38,11 +38,19 @@ public class TalkRobot {
 		private SlotWait d = new SlotWait(this);
 		private SlotTimer t = new SlotTimer(this);
 		
-		public ReplyContext(Packet p) {
+		public ReplyContext(Packet p, String[] parts) {
+			int port = 19302;
+			String server = "stun.l.google.com";
+
+
 			try {
+				if (parts.length > 1)
+					server = parts[1];
+				if (parts.length > 2)
+					port = Integer.parseInt(parts[2]);
 				packet = p;
 				datagram = DatagramChannel.open();
-				client = new STUNClient(datagram, "stun.l.google.com", 19302);
+				client = new STUNClient(datagram, server, port);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -221,7 +229,7 @@ public class TalkRobot {
 
 			cmd = parts[0];
 			if (cmd.equals("stun")) {
-				ReplyContext context = new ReplyContext(packet);
+				ReplyContext context = new ReplyContext(packet, parts);
 				context.start();
 			} else if (cmd.equals("am")) {
 				amStart(parts);
