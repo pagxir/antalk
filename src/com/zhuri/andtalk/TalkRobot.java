@@ -1,12 +1,16 @@
 package com.zhuri.andtalk;
 
 import java.nio.channels.*;
+import java.net.InetAddress;
 import java.io.IOException;
 import com.zhuri.util.DEBUG;
 import com.zhuri.slot.SlotSlot;
 import com.zhuri.slot.SlotWait;
 import com.zhuri.slot.SlotTimer;
 import com.zhuri.net.STUNClient;
+import com.zhuri.pstcp.AppFace;
+import com.zhuri.util.InetUtil;
+
 import com.zhuri.talk.TalkClient;
 import com.zhuri.talk.protocol.Body;
 import com.zhuri.talk.protocol.Packet;
@@ -180,6 +184,28 @@ public class TalkRobot {
 		}
 	}
 
+	private String doTcpForward(String[] parts) {
+
+		try {
+			if (parts.length >= 3) {
+				int port = Integer.parseInt(parts[2]);
+				InetAddress addr = InetUtil.getInetAddress(parts[1]);
+				AppFace.setForward(addr.getAddress(), port);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "doTcpForward: failure";
+		}
+
+		return "doTcpForward: OK";
+	}
+
+	private String doStunSend(String[] parts) {
+		if (parts.length >= 2)
+			AppFace.stunSendRequest(parts[1], 1);
+		return "doStunSend: OK";
+	}
+
 	private void onMessage(Packet packet) {
 		Message message = new Message(packet);
 
@@ -199,6 +225,29 @@ public class TalkRobot {
 				context.start();
 			} else if (cmd.equals("am")) {
 				amStart(parts);
+			} else if (cmd.equals("forward")) {
+				Message reply = new Message();
+				Message message1 = new Message(packet);
+				String title = doTcpForward(parts);
+
+				reply.setTo(message1.getFrom());
+				reply.add(new Body(title));
+				mClient.put(reply);
+			} else if (cmd.equals("stun-send")) {
+				Message reply = new Message();
+				Message message1 = new Message(packet);
+				String title = doStunSend(parts);
+
+				reply.setTo(message1.getFrom());
+				reply.add(new Body(title));
+				mClient.put(reply);
+			} else if (cmd.equals("stun-name")) {
+				Message reply = new Message();
+				Message message1 = new Message(packet);
+
+				reply.setTo(message1.getFrom());
+				reply.add(new Body(AppFace.stunGetName()));
+				mClient.put(reply);
 			} else {
 				DEBUG.Print("MSG " + msg);
 			}
