@@ -7,7 +7,6 @@ import com.zhuri.util.DEBUG;
 import com.zhuri.slot.SlotSlot;
 import com.zhuri.slot.SlotWait;
 import com.zhuri.slot.SlotTimer;
-import com.zhuri.net.STUNClient;
 import com.zhuri.pstcp.AppFace;
 import com.zhuri.util.InetUtil;
 
@@ -28,68 +27,6 @@ public class TalkRobot {
 
 	public TalkRobot(Context context) {
 		mContext = context;
-	}
-
-	class ReplyContext implements Runnable {
-		private Packet packet;
-		private STUNClient client;
-		private DatagramChannel datagram;
-		private SlotWait r = new SlotWait(this);
-		private SlotWait d = new SlotWait(this);
-		private SlotTimer t = new SlotTimer(this);
-		
-		public ReplyContext(Packet p, String[] parts) {
-			int port = 19302;
-			String server = "stun.l.google.com";
-
-
-			try {
-				if (parts.length > 1)
-					server = parts[1];
-				if (parts.length > 2)
-					port = Integer.parseInt(parts[2]);
-				packet = p;
-				datagram = DatagramChannel.open();
-				client = new STUNClient(datagram, server, port);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		public void start() {
-			mDisconnect.record(d);
-			client.requestMapping(r);
-			t.reset(5000);
-		}
-
-		public void run() {
-			Message reply = new Message();
-			Message message = new Message(packet);
-
-			reply.setTo(message.getFrom());
-
-			if (r.completed())
-				reply.add(new Body(client.getMapping().toString()));
-			else if (t.completed())
-				reply.add(new Body("time out"));
-
-			if (!d.completed())
-				mClient.put(reply);
-
-			close();
-		}
-
-		public void close() {
-			try {
-				datagram.close();
-				client.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			t.clean();
-			r.clean();
-			d.clean();
-		}
 	}
 
 	private Intent parseIntent(String[] args) {
@@ -229,7 +166,12 @@ public class TalkRobot {
 
 			cmd = parts[0];
 			if (cmd.equals("stun")) {
-				ReplyContext context = new ReplyContext(packet, parts);
+				StunRobot context =
+					new StunRobot(mClient, mDisconnect, packet, parts);
+				context.start();
+			} else if (cmd.equals("stun")) {
+				UpnpRobot context =
+					new UpnpRobot(mClient, mDisconnect, packet, parts);
 				context.start();
 			} else if (cmd.equals("am")) {
 				amStart(parts);
