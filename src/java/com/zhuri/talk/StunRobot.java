@@ -1,4 +1,4 @@
-package com.zhuri.andtalk;
+package com.zhuri.talk;
 
 import java.nio.channels.*;
 import java.net.InetAddress;
@@ -8,8 +8,6 @@ import com.zhuri.slot.SlotSlot;
 import com.zhuri.slot.SlotWait;
 import com.zhuri.slot.SlotTimer;
 import com.zhuri.net.STUNClient;
-import com.zhuri.net.UPNPClient;
-import com.zhuri.pstcp.AppFace;
 import com.zhuri.util.InetUtil;
 
 import com.zhuri.talk.TalkClient;
@@ -17,14 +15,9 @@ import com.zhuri.talk.protocol.Body;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Message;
 
-import android.net.Uri;
-import android.content.Intent;
-import android.content.Context;
-import android.content.ComponentName;
-
-class UpnpRobot implements Runnable {
+public class StunRobot implements Runnable {
 	private Packet packet;
-	private UPNPClient client;
+	private STUNClient client;
 	private TalkClient mClient;
 	private DatagramChannel datagram;
 	private SlotSlot mDisconner = null;
@@ -32,7 +25,7 @@ class UpnpRobot implements Runnable {
 	private SlotWait d = new SlotWait(this);
 	private SlotTimer t = new SlotTimer(this);
 
-	public UpnpRobot(TalkClient tclient,
+	public StunRobot(TalkClient tclient,
 			SlotSlot disconner, Packet p, String[] parts) {
 		int port = 19302;
 		String server = "stun.l.google.com";
@@ -47,7 +40,7 @@ class UpnpRobot implements Runnable {
 				port = Integer.parseInt(parts[2]);
 			packet = p;
 			datagram = DatagramChannel.open();
-			client = new UPNPClient(datagram, server, port);
+			client = new STUNClient(datagram, server, port);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -55,7 +48,7 @@ class UpnpRobot implements Runnable {
 
 	public void start() {
 		mDisconner.record(d);
-		client.search(r);
+		client.requestMapping(r);
 		t.reset(5000);
 	}
 
@@ -66,7 +59,7 @@ class UpnpRobot implements Runnable {
 		reply.setTo(message.getFrom());
 
 		if (r.completed())
-			reply.add(new Body("UPNP: " + client.getSearchResult()));
+			reply.add(new Body(client.getMapping().toString()));
 		else if (t.completed())
 			reply.add(new Body("time out"));
 

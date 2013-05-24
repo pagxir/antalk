@@ -50,7 +50,7 @@ public class TalkClient {
 	private long mLastActive = 0;
 	final private int mInterval = 30000;
 	final private SlotSlot mESlot = new SlotSlot();
-	final private Connector mConnector = new Connector();
+	final private Connector mConnector = new Connector(); //new XyConnector(XYHOST);
 	final private OutgoingIQManager mIQManager = new OutgoingIQManager();
 
 	final public Packet get() {
@@ -173,7 +173,17 @@ public class TalkClient {
 		return (flags == prev);
 	}
 
-	public void start() {
+	private String mUser;
+	private String mDomain;
+	private String mServer;
+	private String mPassword;
+
+	public void start(String user, String domain,
+			String password, String server) {
+		mUser = user;
+		mDomain = domain;
+		mServer = server;
+		mPassword = password;
 		mStateFlags |= WF_CONFIGURE;
 		routine();
 		return;
@@ -187,7 +197,7 @@ public class TalkClient {
 		}
 
 		if (stateMatch(WF_CONNECTING, WF_RESOLV)) {
-			mConnector.connect("xmpp.l.google.com:5222");
+			mConnector.connect(mServer);
 			mKeepalive.reset(mInterval);
 			mConnector.waitO(mWaitOut);
 			mStateFlags |= WF_CONNECTING;
@@ -203,7 +213,7 @@ public class TalkClient {
 
 		if (stateMatch(WF_HEADER, WF_CONNECTED)) {
 			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
-			mXmlChannel.open("gmail.com");
+			mXmlChannel.open(mDomain);
 			mXmlChannel.waitI(mWaitIn);
 			mStateFlags |= WF_HEADER;
 		}
@@ -247,7 +257,7 @@ public class TalkClient {
 
 		if (stateMatch(WF_PLAINSASL, WF_HANDSHAKE | WF_FEATURE)) {
 			mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
-			Packet packet = new PlainSasl("dupit8", "L8PaPUL1nfQT");
+			Packet packet = new PlainSasl(mUser, mPassword);
 			mStateFlags |= WF_PLAINSASL;
 			mXmlChannel.waitI(mWaitIn);
 			mXmlChannel.put(packet);

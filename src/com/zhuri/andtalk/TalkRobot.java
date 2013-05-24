@@ -11,6 +11,8 @@ import com.zhuri.pstcp.AppFace;
 import com.zhuri.util.InetUtil;
 
 import com.zhuri.talk.TalkClient;
+import com.zhuri.talk.UpnpRobot;
+import com.zhuri.talk.StunRobot;
 import com.zhuri.talk.protocol.Body;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Message;
@@ -255,7 +257,7 @@ public class TalkRobot {
 	public void start() {
 		mClient = new TalkClient();
 		mClient.waitI(onReceive);
-		mClient.start();
+		mClient.start("dupit8", "gmail.com", "L8PaPUL1nfQT", "xmpp.l.google.com:5222");
 		return;
 	}
 }
