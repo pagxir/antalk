@@ -27,7 +27,7 @@ public class Base64Codec {
 			lenin--;
 			bitcnt += 8;
 			bitvalues <<= 8;
-			bitvalues |= src[offin++];
+			bitvalues |= (src[offin++] & 0xFF);
 
 			while (bitcnt >= 6 && len > 0) {
 				len--;

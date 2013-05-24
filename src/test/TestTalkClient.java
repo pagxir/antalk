@@ -96,7 +96,7 @@ public class TestTalkClient {
 	public void start() {
 		mClient = new TalkClient();
 		mClient.waitI(onReceive);
-		mClient.start("1447754732", "uc.sina.com.cn", "GAkJoEtq75x9", "xmpp.uc.sina.com.cn:5222");
+		mClient.start("笑天孔后", "uc.sina.com.cn", "GAkJoEtq75x9", "xmpp.uc.sina.com.cn:5222");
 		return;
 	}
 }
