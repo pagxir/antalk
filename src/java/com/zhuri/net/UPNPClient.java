@@ -24,7 +24,7 @@ public class UPNPClient {
 			this.channel.socket().bind(null);
 			this.channel.socket().setBroadcast(true);
 			this.slchannel = SlotChannel.open(channel);
-			this.stunServer = InetUtil.getInetSocketAddress(domain == null? UNPN_SEARCH_ADDRESS: domain, 1900);
+			this.stunServer = InetUtil.getInetSocketAddress(domain == null? UNPN_SEARCH_ADDRESS: domain, port);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(0);

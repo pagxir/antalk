@@ -28,8 +28,8 @@ public class UpnpRobot implements Runnable {
 
 	public UpnpRobot(TalkClient tclient,
 			SlotSlot disconner, Packet p, String[] parts) {
-		int port = 19302;
-		String server = "stun.l.google.com";
+		int port = 1900;
+		String server = null;
 
 		mClient = tclient;
 		mDisconner = disconner;

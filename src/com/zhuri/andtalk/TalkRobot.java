@@ -171,7 +171,7 @@ public class TalkRobot {
 				StunRobot context =
 					new StunRobot(mClient, mDisconnect, packet, parts);
 				context.start();
-			} else if (cmd.equals("stun")) {
+			} else if (cmd.equals("upnp")) {
 				UpnpRobot context =
 					new UpnpRobot(mClient, mDisconnect, packet, parts);
 				context.start();
@@ -198,7 +198,14 @@ public class TalkRobot {
 				Message message1 = new Message(packet);
 
 				reply.setTo(message1.getFrom());
-				reply.add(new Body(AppFace.stunGetName()));
+				reply.add(new Body("STUN: " + AppFace.stunGetName()));
+				mClient.put(reply);
+			} else if (cmd.equals("version")) {
+				Message reply = new Message();
+				Message message1 = new Message(packet);
+
+				reply.setTo(message1.getFrom());
+				reply.add(new Body("VERSION: V1.0"));
 				mClient.put(reply);
 			} else {
 				DEBUG.Print("MSG " + msg);
