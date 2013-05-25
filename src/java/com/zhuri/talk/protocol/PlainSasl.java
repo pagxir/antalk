@@ -20,7 +20,11 @@ public class PlainSasl extends Packet {
 		ByteBuffer buffer = ByteBuffer.allocate(1000);
 
 		buffer.put((byte)0x0);
-		buffer.put(mUser.getBytes());
+		try {
+			buffer.put(mUser.getBytes("UTF-8"));
+		} catch (Exception e) {
+			buffer.put(mUser.getBytes());
+		}
 		buffer.put((byte)0x0);
 		buffer.put(mSecrect.getBytes());
 		buffer.flip();

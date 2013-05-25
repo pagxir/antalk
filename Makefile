@@ -34,3 +34,7 @@ $(LOCAL_OUT_DIR):
 test:
 	cd bin/classes && java test.TestBox
 
+executable: bin/talk-robot.jar
+
+bin/talk-robot.jar:
+	jar cvfe bin/talk-robot.jar test.TestBox -C bin/classes .
