@@ -39,7 +39,6 @@ public class STUNClient {
 			this.stunServer = InetUtil.getInetSocketAddress(domain, port);
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.exit(0);
 		}
 
 		this.slep = new SlotSlot();

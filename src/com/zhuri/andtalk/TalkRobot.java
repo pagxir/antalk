@@ -117,9 +117,9 @@ public class TalkRobot {
 		return intent;
 	}
 
-	private void amStart(String[] args) {
+	private String amStart(String[] args) {
 		if (args.length < 3) {
-			return;
+			return "inval argument";
 		}
 
 		try {
@@ -134,7 +134,10 @@ public class TalkRobot {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			return e.getMessage();
 		}
+
+		return "OK";
 	}
 
 	private String doTcpForward(String[] parts) {
@@ -204,48 +207,32 @@ public class TalkRobot {
 				UpnpRobot context =
 					new UpnpRobot(mClient, mDisconnect, packet, parts);
 				context.start();
-			} else if (cmd.equals("am")) {
-				amStart(parts);
-			} else if (cmd.equals("ifconfig")) {
-				Message reply = new Message();
-				Message message1 = new Message(packet);
-				String title = getNetworkConfig(parts);
-
-				reply.setTo(message1.getFrom());
-				reply.add(new Body(title));
-				mClient.put(reply);
-			} else if (cmd.equals("forward")) {
-				Message reply = new Message();
-				Message message1 = new Message(packet);
-				String title = doTcpForward(parts);
-
-				reply.setTo(message1.getFrom());
-				reply.add(new Body(title));
-				mClient.put(reply);
-			} else if (cmd.equals("stun-send")) {
-				Message reply = new Message();
-				Message message1 = new Message(packet);
-				String title = doStunSend(parts);
-
-				reply.setTo(message1.getFrom());
-				reply.add(new Body(title));
-				mClient.put(reply);
-			} else if (cmd.equals("stun-name")) {
-				Message reply = new Message();
-				Message message1 = new Message(packet);
-
-				reply.setTo(message1.getFrom());
-				reply.add(new Body("STUN: " + AppFace.stunGetName()));
-				mClient.put(reply);
-			} else if (cmd.equals("version")) {
-				Message reply = new Message();
-				Message message1 = new Message(packet);
-
-				reply.setTo(message1.getFrom());
-				reply.add(new Body("VERSION: V1.0"));
-				mClient.put(reply);
 			} else {
-				DEBUG.Print("MSG " + msg);
+				Message reply = new Message();
+				Message message1 = new Message(packet);
+				reply.setTo(message1.getFrom());
+
+				if (cmd.equals("am")) {
+					String title = amStart(parts);
+					reply.add(new Body(title));
+				} else if (cmd.equals("ifconfig")) {
+					String title = getNetworkConfig(parts);
+					reply.add(new Body(title));
+				} else if (cmd.equals("forward")) {
+					String title = doTcpForward(parts);
+					reply.add(new Body(title));
+				} else if (cmd.equals("stun-send")) {
+					String title = doStunSend(parts);
+					reply.add(new Body(title));
+				} else if (cmd.equals("stun-name")) {
+					reply.add(new Body("STUN: " + AppFace.stunGetName()));
+				} else if (cmd.equals("version")) {
+					reply.add(new Body("VERSION: V1.0"));
+				} else {
+					reply.add(new Body("unkown command"));
+				}
+
+				mClient.put(reply);
 			}
 		}
 	}

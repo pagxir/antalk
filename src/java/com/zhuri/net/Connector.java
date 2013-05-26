@@ -8,15 +8,18 @@ import java.nio.channels.*;
 import java.io.IOException;
 
 public class Connector implements IWaitableChannel, IConnectable {
+	boolean sCancel;
 	SlotChannel sChannel;
 	SocketChannel mSocket;
 
 	public Connector() {
+		sCancel = false;
 		try {
 			mSocket = SocketChannel.open();
 			sChannel = SlotChannel.open(mSocket);
 		} catch (IOException e) {
 			e.printStackTrace();
+			sCancel = true;
 		}
 	}
 
@@ -28,16 +31,22 @@ public class Connector implements IWaitableChannel, IConnectable {
 			parts = target.split(":");
 			mSocket.connect(new InetSocketAddress(parts[0], Integer.parseInt(parts[1])));
 		} catch (IOException e) {
+			sChannel.wakeupall();
 			e.printStackTrace();
+			sCancel = true;
 		}
 	}
 
 	public void waitI(SlotWait wait) {
 		sChannel.wantIn(wait);
+		if (sCancel)
+			sChannel.wakeupall();
 	}
 
 	public void waitO(SlotWait wait) {
 		sChannel.wantOut(wait);
+		if (sCancel)
+			sChannel.wakeupall();
 	}
 
 	public long read(ByteBuffer dst) throws IOException {
@@ -51,8 +60,10 @@ public class Connector implements IWaitableChannel, IConnectable {
 	}
 
 	public void close() throws IOException {
-		sChannel.detach();
-		mSocket.close();
+		if (sChannel != null)
+			sChannel.detach();
+		if (mSocket != null)
+			mSocket.close();
 	}
 }
 

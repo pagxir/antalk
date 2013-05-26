@@ -372,6 +372,12 @@ public class SlotThread {
 			return false;
 		}
 
+		public void wakeupall() {
+			mSlotOut.wakeup();
+			mSlotIn.wakeup();
+			return;
+		}
+
 		void wakeup() {
 			int wakeup_flags = 0;
 			int write_flags  = SelectionKey.OP_CONNECT| SelectionKey.OP_WRITE;

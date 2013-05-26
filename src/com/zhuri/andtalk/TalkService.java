@@ -87,8 +87,8 @@ public class TalkService extends Service implements Runnable {
             while (SlotThread.step());
         } catch (Exception e) {
             e.printStackTrace();
+			stopSelf();
         }
-
 		
 		Log.i(TAG, "run finish");
 		running = false;
