@@ -22,6 +22,12 @@ import android.content.Intent;
 import android.content.Context;
 import android.content.ComponentName;
 
+import java.net.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Enumeration;
+
+
 public class TalkRobot {
 	private Context mContext;
 	private TalkClient mClient;
@@ -153,6 +159,29 @@ public class TalkRobot {
 		return "doStunSend: OK";
 	}
 
+	private String getNetworkConfig(String[] parts) {
+		String config = "";
+
+		try {
+			for (Enumeration<NetworkInterface> en = NetworkInterface
+					.getNetworkInterfaces(); en.hasMoreElements();) {
+				NetworkInterface intf = en.nextElement();
+				List<InterfaceAddress> ifaddrs = intf.getInterfaceAddresses();
+				for (InterfaceAddress ifaddr: ifaddrs) {
+					InetAddress iaddr = ifaddr.getAddress();
+					if (iaddr != null && !iaddr.isLoopbackAddress()) {
+						config += "ifconfig: " + ifaddr.getAddress().getHostAddress() + "\r\n";
+					}
+				}   
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "ifconfig: exception";
+		}
+
+		return config;
+	}
+
 	private void onMessage(Packet packet) {
 		Message message = new Message(packet);
 
@@ -177,6 +206,14 @@ public class TalkRobot {
 				context.start();
 			} else if (cmd.equals("am")) {
 				amStart(parts);
+			} else if (cmd.equals("ifconfig")) {
+				Message reply = new Message();
+				Message message1 = new Message(packet);
+				String title = getNetworkConfig(parts);
+
+				reply.setTo(message1.getFrom());
+				reply.add(new Body(title));
+				mClient.put(reply);
 			} else if (cmd.equals("forward")) {
 				Message reply = new Message();
 				Message message1 = new Message(packet);
