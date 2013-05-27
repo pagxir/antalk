@@ -64,4 +64,22 @@ public class TalkActivity extends Activity implements OnClickListener {
 		}
 	}
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(Menu.NONE, Menu.FIRST + 1, 5, R.string.settings).setIcon(android.R.drawable.ic_menu_edit);
+        return true;
+    }   
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case Menu.FIRST + 1:
+                Intent settings = new Intent(this, TalkRobotSettings.class);
+                startActivity(settings);
+                break;
+        }   
+
+        return false;
+    }   
 }

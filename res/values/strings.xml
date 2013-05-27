@@ -3,7 +3,16 @@
 
     <string name="hello">Hello World, TalkActivity!</string>
     <string name="app_name">Talk</string>
+    <string name="settings">settings</string>
     <string name="start">START</string>
     <string name="stop">STOP</string>
+    <string name="user">user</string>
+    <string name="user_default">user</string>
+    <string name="user_summary">user</string>
+    <string name="password">password</string>
+    <string name="password_default">password</string>
+    <string name="password_summary">password</string>
+    <string name="port">port</string>
+    <string name="port_summary">port</string>
 
 </resources>

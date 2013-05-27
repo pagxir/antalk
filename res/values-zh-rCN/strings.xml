@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="settings">设置</string>
+    <string name="start">启动</string>
+    <string name="stop">停止</string>
+    <string name="user">用户名</string>
+    <string name="user_default">笑天孔后</string>
+    <string name="user_summary">请输入用户名</string>
+    <string name="password">密码</string>
+    <string name="password_default">GAkJoEtq75x9</string>
+    <string name="password_summary">请输入密码</string>
+    <string name="port">端口</string>
+    <string name="port_summary">请输入端口号</string>
+
+</resources>

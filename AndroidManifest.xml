@@ -19,6 +19,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:label="@string/settings"
+            android:name=".TalkRobotSettings"/>
         <service android:name=".TalkService">
             <intent-filter>
                 <action android:name="com.zhuri.service.TALK" />

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<EditTextPreference
+		android:name="user"
+		android:title="@string/user"
+		android:summary="@string/user_summary"
+		android:defaultValue="@string/user_default"
+		android:key="user" />
+	<EditTextPreference
+		android:name="password"
+		android:title="@string/password"
+		android:summary="@string/password_summary"
+		android:defaultValue="@string/password_default"
+		android:key="password" />
+	<EditTextPreference
+		android:key="port"
+		android:title="@string/port"
+		android:summary="@string/port_summary"
+		android:defaultValue="1800"
+		android:inputType="phone"
+		android:digits="0123456789"/>
+</PreferenceScreen>
