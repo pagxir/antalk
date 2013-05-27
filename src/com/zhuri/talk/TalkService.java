@@ -1,4 +1,4 @@
-package com.zhuri.andtalk;
+package com.zhuri.talk;
 
 import android.app.Service;
 import android.content.Context;
@@ -7,40 +7,43 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
-import com.zhuri.pstcp.AppFace;
 
-public class PstcpService extends Service implements Runnable {
-	private int PORT = 1800;
+import com.zhuri.slot.*;
+import com.zhuri.talk.TalkRobot;
+
+public class TalkService extends Service implements Runnable {
 	private Thread worker = null;
-	private boolean exited = true;
 	private boolean running = false;
 	
-	static final String TAG = "PSTCP";
+	static final String TAG = "TALK";
 
 	@Override
 	public IBinder onBind(Intent arg0) {
-		Toast.makeText(this , "Hello World", Toast.LENGTH_SHORT);
 		return null;
 	}
-	
+
+	public static Intent serviceIntent(Context context) {
+		Intent intent = new Intent(context, TalkService.class);
+		return intent;
+	}
+
 	@Override
 	public void onCreate() {
-		Log.i(TAG, "onCreate");
 		super.onCreate();
+		Log.i(TAG, "onCreate");
 		
 		worker = new Thread(this);
-		exited = false;
 		running = true;
 		worker.start();
 	}
 
 	@Override
 	public void onDestroy() {
-		Log.i(TAG, "onDestroy");
 		super.onDestroy();
+		Log.i(TAG, "onDestroy");
 		
 		try {
-			exited = true;
+			mAsync.toggle();
 			worker.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -59,17 +62,40 @@ public class PstcpService extends Service implements Runnable {
 		super.onStart(intent, startId);
 	}
 
+	private SlotAsync mAsync;
+	private TalkRobot mClient;
+
+	final private Runnable mQuit = new Runnable() {
+		public void run() {
+			mClient.close();
+			SlotThread.stop();
+			return;
+		}
+	};
+
+	private void initialize() {
+		mClient = new TalkRobot(this);
+		mClient.start();
+
+		mAsync = new SlotAsync(mQuit);
+		mAsync.setup();
+		return;
+	}
+
 	@Override
 	public void run() {
-		AppFace.start();
-		
 		Log.i(TAG, "run prepare");
-		while (!exited) {
-			AppFace.loop();
-		}
+
+        try {
+            SlotThread.Init();
+			initialize();
+            while (SlotThread.step());
+        } catch (Exception e) {
+            e.printStackTrace();
+			stopSelf();
+        }
 		
 		Log.i(TAG, "run finish");
-		AppFace.stop();
 		running = false;
 	}
 }

@@ -30,4 +30,7 @@
     <string name="port_default">5222</string>
     <string name="port_summary">port</string>
 
+    <string name="bootup">auto start</string>
+    <string name="bootup_summary">auto start when phone bootup</string>
+
 </resources>

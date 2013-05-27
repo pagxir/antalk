@@ -24,4 +24,7 @@
     <string name="port">端口</string>
     <string name="port_summary">请输入服务器端口号</string>
 
+    <string name="bootup">自动启动</string>
+    <string name="bootup_summary">开机时候,自动启动</string>
+
 </resources>

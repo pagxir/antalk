@@ -1,5 +1,6 @@
-package com.zhuri.andtalk;
+package com.zhuri.talk.ui;
 
+import com.zhuri.talk.R;
 import android.util.Log;
 import android.util.Base64;
 import android.os.Bundle;

@@ -1,38 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.zhuri.andtalk"
+    package="com.zhuri.talk"
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="10" />
+    <uses-sdk android:minSdkVersion="10"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.BROADCAST_STICKY"/>
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name" >
+        android:label="@string/app_name">
         <activity
             android:label="@string/app_name"
-            android:name=".TalkActivity" >
+            android:name=".ui.TalkRobotStatus">
             <intent-filter >
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
-            android:label="@string/settings"
-            android:name=".TalkRobotSettings"/>
-        <service android:name=".TalkService">
-            <intent-filter>
-                <action android:name="com.zhuri.service.TALK" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </service>
-        <service android:name=".PstcpService">
-            <intent-filter>
-                <action android:name="com.zhuri.service.PSTCP" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </service>
+			android:label="@string/settings" android:name=".ui.TalkRobotSettings"/>
+        <service android:name=".TalkService"/>
+        <service android:name=".PstcpService"/>
+		<receiver android:name=".ui.BootupReceiver">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED"/>
+			</intent-filter>
+		</receiver>
     </application>
 </manifest>

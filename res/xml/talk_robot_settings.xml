@@ -37,4 +37,9 @@
 		android:defaultValue="@string/port_default"
 		android:inputType="phone"
 		android:digits="0123456789"/>
+	<CheckBoxPreference
+		android:key="bootup"
+		android:title="@string/bootup"
+		android:summary="@string/bootup_summary"
+		android:defaultValue="false"/>
 </PreferenceScreen>

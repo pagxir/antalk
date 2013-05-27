@@ -1,10 +1,13 @@
-package com.zhuri.andtalk;
+package com.zhuri.talk.ui;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 
+import com.zhuri.talk.R;
+import com.zhuri.talk.TalkService;
+import com.zhuri.talk.PstcpService;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -23,10 +26,8 @@ import android.view.View.OnClickListener;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class TalkActivity extends Activity implements OnClickListener {
-	static final String LOG_TAG ="TalkActivity";
-	private static final Intent talkService = new Intent("com.zhuri.service.TALK");
-	private static final Intent pstcpService = new Intent("com.zhuri.service.PSTCP");
+public class TalkRobotStatus extends Activity implements OnClickListener {
+	static final String LOG_TAG ="TalkRobotStatus";
 
 	/** Called when the activity is first created. */
 	@Override
@@ -50,13 +51,13 @@ public class TalkActivity extends Activity implements OnClickListener {
 	public void onClick(View view) {
 		switch (view.getId()) {
 			case R.id.start:
-				startService(pstcpService);
-				startService(talkService);
+				startService(PstcpService.serviceIntent(this));
+				startService(TalkService.serviceIntent(this));
 				break;
 
 			case R.id.stop:
-				stopService(talkService);
-				stopService(pstcpService);
+				stopService(TalkService.serviceIntent(this));
+				stopService(PstcpService.serviceIntent(this));
 				break;
 
 			default:

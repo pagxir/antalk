@@ -1,4 +1,4 @@
-package com.zhuri.andtalk;
+package com.zhuri.talk;
 
 import java.nio.channels.*;
 import java.net.InetAddress;
