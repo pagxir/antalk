@@ -13,10 +13,28 @@
 		android:defaultValue="@string/password_default"
 		android:key="password" />
 	<EditTextPreference
+		android:name="resource"
+		android:title="@string/resource"
+		android:summary="@string/resource_summary"
+		android:defaultValue="@string/resource_default"
+		android:key="resource" />
+	<EditTextPreference
+		android:name="domain"
+		android:title="@string/domain"
+		android:summary="@string/domain_summary"
+		android:defaultValue="@string/domain_default"
+		android:key="resource" />
+	<EditTextPreference
+		android:name="server"
+		android:title="@string/server"
+		android:summary="@string/server_summary"
+		android:defaultValue="@string/server_default"
+		android:key="server" />
+	<EditTextPreference
 		android:key="port"
 		android:title="@string/port"
 		android:summary="@string/port_summary"
-		android:defaultValue="1800"
+		android:defaultValue="@string/port_default"
 		android:inputType="phone"
 		android:digits="0123456789"/>
 </PreferenceScreen>

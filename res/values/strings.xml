@@ -1,18 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="hello">Hello World, TalkActivity!</string>
     <string name="app_name">Talk</string>
-    <string name="settings">settings</string>
-    <string name="start">START</string>
-    <string name="stop">STOP</string>
+    <string name="settings">Settings</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+
     <string name="user">user</string>
-    <string name="user_default">user</string>
+    <string name="user_default">笑天孔后</string>
     <string name="user_summary">user</string>
+
     <string name="password">password</string>
-    <string name="password_default">password</string>
+    <string name="password_default">GAkJoEtq75x9</string>
     <string name="password_summary">password</string>
+
+    <string name="resource">resource</string>
+    <string name="resource_default">ROBOT-v1.0</string>
+    <string name="resource_summary">resource</string>
+
+    <string name="domain">domain</string>
+    <string name="domain_default">uc.sin.com.cn</string>
+    <string name="domain_summary">domain</string>
+
+    <string name="server">server</string>
+    <string name="server_default">xmpp.uc.sina.com.cn</string>
+    <string name="server_summary">server</string>
+
     <string name="port">port</string>
+    <string name="port_default">5222</string>
     <string name="port_summary">port</string>
 
 </resources>

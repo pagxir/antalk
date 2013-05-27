@@ -5,13 +5,23 @@
     <string name="settings">设置</string>
     <string name="start">启动</string>
     <string name="stop">停止</string>
+
     <string name="user">用户名</string>
-    <string name="user_default">笑天孔后</string>
     <string name="user_summary">请输入用户名</string>
+
     <string name="password">密码</string>
-    <string name="password_default">GAkJoEtq75x9</string>
     <string name="password_summary">请输入密码</string>
+
+    <string name="resource">资源</string>
+    <string name="resource_summary">请输入资源标识</string>
+
+    <string name="domain">域名</string>
+    <string name="domain_summary">请输入域名</string>
+
+    <string name="server">服务器</string>
+    <string name="server_summary">请输入服务器地址</string>
+
     <string name="port">端口</string>
-    <string name="port_summary">请输入端口号</string>
+    <string name="port_summary">请输入服务器端口号</string>
 
 </resources>
