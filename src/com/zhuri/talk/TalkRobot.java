@@ -21,6 +21,8 @@ import android.net.Uri;
 import android.content.Intent;
 import android.content.Context;
 import android.content.ComponentName;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 import java.net.*;
 import java.util.List;
@@ -286,9 +288,21 @@ public class TalkRobot {
 	};
 
 	public void start() {
+		int port;
+		SharedPreferences pref;
+		String user, domain, server, password;
+
 		mClient = new TalkClient();
 		mClient.waitI(onReceive);
-		mClient.start("dupit8", "gmail.com", "L8PaPUL1nfQT", "xmpp.l.google.com:5222");
+
+		pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+		port = pref.getInt("port", 5222);
+		user = pref.getString("user", "dupit8");
+		domain = pref.getString("domain", "gmail.com");
+		server = pref.getString("server", "xmpp.l.google.com");
+		password = pref.getString("password", "L8PaPUL1nfQT");
+
+		mClient.start(user, domain, password, server + ":" + port);
 		return;
 	}
 }
