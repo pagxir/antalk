@@ -288,7 +288,7 @@ public class TalkRobot {
 	};
 
 	public void start() {
-		int port;
+		String port;
 		SharedPreferences pref;
 		String user, domain, server, password;
 
@@ -296,7 +296,7 @@ public class TalkRobot {
 		mClient.waitI(onReceive);
 
 		pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-		port = pref.getInt("port", 5222);
+		port = pref.getString("port", "5222");
 		user = pref.getString("user", "dupit8");
 		domain = pref.getString("domain", "gmail.com");
 		server = pref.getString("server", "xmpp.l.google.com");
