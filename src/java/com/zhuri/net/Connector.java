@@ -30,6 +30,10 @@ public class Connector implements IWaitableChannel, IConnectable {
 		try {
 			parts = target.split(":");
 			mSocket.connect(new InetSocketAddress(parts[0], Integer.parseInt(parts[1])));
+		} catch (UnresolvedAddressException e) {
+			sChannel.wakeupall();
+			e.printStackTrace();
+			sCancel = true;
 		} catch (IOException e) {
 			sChannel.wakeupall();
 			e.printStackTrace();
