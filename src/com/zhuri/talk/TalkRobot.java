@@ -172,19 +172,23 @@ public class TalkRobot {
 	final static String SMS_URI_OUTBOX = "content://sms/outbox/";
 	final static String SMS_URI_FAILED = "content://sms/failed/";
 	final static String SMS_URI_QUEUED = "content://sms/queued/";
+	final static String UNREAD_SELECTION = "(read=0 OR seen=0)";
 	private String readSMS(String[] parts) {
-		int bodyIndex, addressIndex;
-		String messageContent = "SMS\r\n";
+		int bodyIndex, addressIndex, idIndex;
+		String messageContent = "";
 		String[] projection = new String[] {
-			"_id", "address", "person", "body", "date", "type"
+			"_id", "address", "person", "body", "date", "type", "read"
 		};
 
 		String index = null;
 		String smsUri = "content://sms/";
+		String selection = null;
 
 		for (String part: parts) {
 			if (part.matches("^[0-9]*$"))
 				index = part;
+			else if (part.equals("unread"))
+				selection = UNREAD_SELECTION;
 			else if (part.equals("inbox"))
 				smsUri = SMS_URI_INBOX;
 			else if (part.equals("sent"))
@@ -203,17 +207,27 @@ public class TalkRobot {
 			smsUri += index;
 
 		Uri uri = Uri.parse(smsUri);
-		Cursor cursor = mContext.getContentResolver().query(uri, projection, null, null, "date desc");
+		Cursor cursor = mContext.getContentResolver().query(uri,
+				projection, selection, null, "date desc");
+		idIndex = cursor.getColumnIndex("_id");
 		bodyIndex = cursor.getColumnIndex("body");
 		addressIndex = cursor.getColumnIndex("address");
 
+		int last_id = 0;
+		int first_id = 0;
 		if (cursor.moveToFirst()) {
+			int count = 0;
+			first_id = cursor.getInt(idIndex);
 			do {
-				messageContent += "address: " + cursor.getString(addressIndex) + "\r\n";
-				messageContent += "body: " + cursor.getString(bodyIndex) + "\r\n";
+				if (count++ < 10) {
+					messageContent += "address: " + cursor.getString(addressIndex) + "\r\n";
+					messageContent += "body: " + cursor.getString(bodyIndex) + "\r\n";
+				}
+				last_id = cursor.getInt(idIndex);
 			} while (cursor.moveToNext());
 		}
 
+		messageContent += "SMS: first=" + first_id + " last="  + last_id;
 		return messageContent;
 	}
 
