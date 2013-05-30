@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.content.Context;
 import android.content.ComponentName;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.preference.PreferenceManager;
 
 import java.net.*;
@@ -164,6 +165,58 @@ public class TalkRobot {
 		return "doStunSend: OK";
 	}
 
+	final static String SMS_URI_ALL =  "content://sms/";
+	final static String SMS_URI_INBOX = "content://sms/inbox/";
+	final static String SMS_URI_SEND = "content://sms/sent/";
+	final static String SMS_URI_DRAFT = "content://sms/draft/";
+	final static String SMS_URI_OUTBOX = "content://sms/outbox/";
+	final static String SMS_URI_FAILED = "content://sms/failed/";
+	final static String SMS_URI_QUEUED = "content://sms/queued/";
+	private String readSMS(String[] parts) {
+		int bodyIndex, addressIndex;
+		String messageContent = "SMS\r\n";
+		String[] projection = new String[] {
+			"_id", "address", "person", "body", "date", "type"
+		};
+
+		String index = null;
+		String smsUri = "content://sms/";
+
+		for (String part: parts) {
+			if (part.matches("^[0-9]*$"))
+				index = part;
+			else if (part.equals("inbox"))
+				smsUri = SMS_URI_INBOX;
+			else if (part.equals("sent"))
+				smsUri = SMS_URI_SEND;
+			else if (part.equals("draft"))
+				smsUri = SMS_URI_DRAFT;
+			else if (part.equals("outbox"))
+				smsUri = SMS_URI_OUTBOX;
+			else if (part.equals("failed"))
+				smsUri = SMS_URI_FAILED;
+			else if (part.equals("queued"))
+				smsUri = SMS_URI_QUEUED;
+		}
+
+		if (index != null)
+			smsUri += index;
+
+		Uri uri = Uri.parse(smsUri);
+		Cursor cursor = mContext.getContentResolver().query(uri, projection, null, null, "date desc");
+		bodyIndex = cursor.getColumnIndex("body");
+		addressIndex = cursor.getColumnIndex("address");
+
+		if (cursor.moveToFirst()) {
+			do {
+				messageContent += "address: " + cursor.getString(addressIndex) + "\r\n";
+				messageContent += "body: " + cursor.getString(bodyIndex) + "\r\n";
+			} while (cursor.moveToNext());
+		}
+
+		return messageContent;
+	}
+
 	private String getNetworkConfig(String[] parts) {
 		String config = "";
 
@@ -230,6 +283,9 @@ public class TalkRobot {
 					reply.add(new Body("STUN: " + AppFace.stunGetName()));
 				} else if (cmd.equals("version")) {
 					reply.add(new Body("VERSION: V1.0"));
+				} else if (cmd.equals("sms")) {
+					String title = readSMS(parts);
+					reply.add(new Body(title));
 				} else {
 					reply.add(new Body("unkown command"));
 				}
