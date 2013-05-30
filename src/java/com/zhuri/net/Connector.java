@@ -53,13 +53,21 @@ public class Connector implements IWaitableChannel, IConnectable {
 			sChannel.wakeupall();
 	}
 
+	private void checkConnectException(SocketChannel channel) throws IOException {
+		try {
+			channel.finishConnect();
+		} catch (NoConnectionPendingException e) {
+			throw new IOException(e);
+		}
+	}
+
 	public long read(ByteBuffer dst) throws IOException {
-		mSocket.finishConnect();
+		checkConnectException(mSocket);
 		return mSocket.read(dst);
 	}
 
 	public long write(ByteBuffer src) throws IOException {
-		mSocket.finishConnect();
+		checkConnectException(mSocket);
 		return mSocket.write(src);
 	}
 
