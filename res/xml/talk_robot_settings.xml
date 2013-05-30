@@ -23,7 +23,7 @@
 		android:title="@string/domain"
 		android:summary="@string/domain_summary"
 		android:defaultValue="@string/domain_default"
-		android:key="resource" />
+		android:key="domain" />
 	<EditTextPreference
 		android:name="server"
 		android:title="@string/server"
