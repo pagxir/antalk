@@ -1,5 +1,6 @@
 package com.zhuri.slot;
 
+import java.io.IOException;
 import java.nio.channels.*;
 
 public class SlotThread {
@@ -210,7 +211,7 @@ public class SlotThread {
 		readytailer = wait;
 	}
 
-	public static boolean step() throws Exception {
+	public static boolean step() {
 		Wait iter = null;
 		Wait marker = new Wait();
 		marker.flags &= ~WT_EXTERNAL;
@@ -265,11 +266,17 @@ public class SlotThread {
 		return null;
 	}
 
-	static void chInvoke(long timeout) throws Exception {
+	static void chInvoke(long timeout) {
 		int count;
 		Channel channel;
 
-		count = timeout > 0? selector.select(timeout): selector.selectNow();
+		try {
+			count = timeout > 0? selector.select(timeout): selector.selectNow();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
+
 		if (count > 0) {
 			int flags = 0;
 
