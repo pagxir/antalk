@@ -13,6 +13,7 @@ import com.zhuri.util.InetUtil;
 import com.zhuri.talk.TalkClient;
 import com.zhuri.talk.UpnpRobot;
 import com.zhuri.talk.StunRobot;
+import com.zhuri.talk.TalkRobot;
 import com.zhuri.talk.protocol.Body;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Message;
@@ -30,14 +31,64 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-
-public class TalkRobot {
+class MyInvoke implements TalkRobot.IReplyable {
 	private Context mContext;
-	private TalkClient mClient;
-	final private SlotSlot mDisconnect = new SlotSlot();
+	private String[] mParamers;
 
-	public TalkRobot(Context context) {
+	private String mFrom;
+	private SlotSlot mCancel;
+	private TalkClient mClient;
+
+	public MyInvoke(String[] params, Context context) {
+		mParamers = params;
 		mContext = context;
+		return;
+	}
+
+	@Override
+	public void setCancel(SlotSlot cancel) {
+		mCancel = cancel;
+		return;
+	}
+
+	@Override
+	public void setTalk(TalkClient client) {
+		mClient = client;
+		return;
+	}
+
+	@Override
+	public void setReply(String reply) {
+		mFrom = reply;
+		return;
+	}
+
+	@Override
+	public void invoke() {
+		String output = "";
+		String method = mParamers[0];
+		Message reply = new Message();
+
+		reply.setTo(mFrom);
+		if (method.equals("am")) {
+			output = amStart(mParamers);
+		} else if (method.equals("sms")) {
+			output = readSMS(mParamers);
+		} else if (method.equals("version")) {
+			output = "VERSION: 3.0";
+		} else if (method.equals("forward")) {
+			output = doTcpForward(mParamers);
+		} else if (method.equals("ifconfig")) {
+			output = getNetworkConfig(mParamers);
+		} else if (method.equals("stun-send")) {
+			output = doStunSend(mParamers);
+		} else if (method.equals("stun-name")) {
+			output = AppFace.stunGetName();
+		}
+
+		reply.add(new Body(output));
+		mClient.put(reply);
+		return;
 	}
 
 	private Intent parseIntent(String[] args) {
@@ -122,7 +173,7 @@ public class TalkRobot {
 
 	private String amStart(String[] args) {
 		if (args.length < 3) {
-			return "inval argument";
+			return "am: inval argument";
 		}
 
 		try {
@@ -140,7 +191,7 @@ public class TalkRobot {
 			return e.getMessage();
 		}
 
-		return "OK";
+		return "am: OK";
 	}
 
 	private String doTcpForward(String[] parts) {
@@ -153,16 +204,16 @@ public class TalkRobot {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "doTcpForward: failure";
+			return "forward: failure";
 		}
 
-		return "doTcpForward: OK";
+		return "forward: OK";
 	}
 
 	private String doStunSend(String[] parts) {
 		if (parts.length >= 2)
 			AppFace.stunSendRequest(parts[1], 1);
-		return "doStunSend: OK";
+		return "stun-send: OK";
 	}
 
 	final static String SMS_URI_ALL =  "content://sms/";
@@ -227,7 +278,7 @@ public class TalkRobot {
 			} while (cursor.moveToNext());
 		}
 
-		messageContent += "SMS: first=" + first_id + " last="  + last_id;
+		messageContent += "sms: first=" + first_id + " last="  + last_id;
 		return messageContent;
 	}
 
@@ -253,117 +304,35 @@ public class TalkRobot {
 
 		return config;
 	}
+}
 
-	private void onMessage(Packet packet) {
-		Message message = new Message(packet);
+class MyTalkRobot extends TalkRobot {
+	private Context mContext;
+	final private SlotSlot mDisconnect = new SlotSlot();
 
-		if (message.hasBody()) {
-			String cmd;
-			String msg = message.getContent();
-			if (msg == null || msg.equals("")) {
-				DEBUG.Print("EMPTY Message");
-				return;
-			}
-
-			String[] parts = msg.split(" ");
-
-			cmd = parts[0];
-			if (cmd.equals("stun")) {
-				StunRobot context =
-					new StunRobot(mClient, mDisconnect, packet, parts);
-				context.start();
-			} else if (cmd.equals("upnp")) {
-				UpnpRobot context =
-					new UpnpRobot(mClient, mDisconnect, packet, parts);
-				context.start();
-			} else {
-				Message reply = new Message();
-				Message message1 = new Message(packet);
-				reply.setTo(message1.getFrom());
-
-				if (cmd.equals("am")) {
-					String title = amStart(parts);
-					reply.add(new Body(title));
-				} else if (cmd.equals("ifconfig")) {
-					String title = getNetworkConfig(parts);
-					reply.add(new Body(title));
-				} else if (cmd.equals("forward")) {
-					String title = doTcpForward(parts);
-					reply.add(new Body(title));
-				} else if (cmd.equals("stun-send")) {
-					String title = doStunSend(parts);
-					reply.add(new Body(title));
-				} else if (cmd.equals("stun-name")) {
-					reply.add(new Body("STUN: " + AppFace.stunGetName()));
-				} else if (cmd.equals("version")) {
-					reply.add(new Body("VERSION: V1.0"));
-				} else if (cmd.equals("sms")) {
-					String title = readSMS(parts);
-					reply.add(new Body(title));
-				} else {
-					reply.add(new Body("unkown command"));
-				}
-
-				mClient.put(reply);
-			}
-		}
-	}
-
-	private final SlotWait onReceive = new SlotWait() {
-		public void invoke() {
-			Packet packet = mClient.get();
-
-			while (packet != Packet.EMPTY_PACKET) {
-				DEBUG.Print("INCOMING", packet.toString());
-				if (packet.matchTag("presence")) {
-					mClient.processIncomingPresence(packet);
-				} else if (packet.matchTag("message")) {
-					mClient.processIncomingMessage(packet);
-					onMessage(packet);
-				} else if (packet.matchTag("iq")) {
-					mClient.processIncomingIQ(packet);
-				} else {
-					DEBUG.Print("unkown TAG: " + packet.getTag());
-				}
-				mClient.mark();
-				packet = mClient.get();
-			}
-
-			if (!mClient.isStreamClosed()) {
-				mClient.waitI(onReceive);
-			   return;
-			}
-
-			/* release connect resource than retry */
-			mDisconnect.wakeup();
-			mClient.disconnect();
-			mDelay.reset(5000);
-			return;
+	final private Scriptor.ICommandInterpret mMyInterpret = new Scriptor.ICommandInterpret() {
+		public Scriptor.IInvokable createInvoke(List<String> params) {
+			String[] arr = new String[params.size()];
+			return new MyInvoke(params.toArray(arr), mContext);
 		}
 	};
 
-	public void close() {
-		if (mClient != null)
-			mClient.disconnect();
-		mDisconnect.wakeup();
-		mDelay.clean();
-		return;
+	public MyTalkRobot(Context context) {
+		super(new TalkClient());
+		mContext = context;
+		mScriptor.registerCommand("am", mMyInterpret);
+		mScriptor.registerCommand("sms", mMyInterpret);
+		mScriptor.registerCommand("version", mMyInterpret);
+		mScriptor.registerCommand("forward", mMyInterpret);
+		mScriptor.registerCommand("ifconfig", mMyInterpret);
+		mScriptor.registerCommand("stun-send", mMyInterpret);
+		mScriptor.registerCommand("stun-name", mMyInterpret);
 	}
-
-	final private SlotTimer mDelay = new SlotTimer() {
-		public void invoke() {
-			start();
-			return;
-		}
-	};
 
 	public void start() {
 		String port;
 		SharedPreferences pref;
 		String user, domain, server, password;
-
-		mClient = new TalkClient();
-		mClient.waitI(onReceive);
 
 		pref = PreferenceManager.getDefaultSharedPreferences(mContext);
 		port = pref.getString("port", "5222");
@@ -374,5 +343,41 @@ public class TalkRobot {
 
 		mClient.start(user, domain, password, server + ":" + port);
 		return;
+	}
+}
+
+public class RoidTalkRobot {
+	private Context mContext;
+	private MyTalkRobot mRobot;
+	
+	public RoidTalkRobot(Context context) {
+		mContext = context;
+		return;
+	}
+
+	final private SlotTimer mDelay = new SlotTimer() {
+		public void invoke() {
+			start();
+			return;
+		}
+	};
+
+	final private SlotWait onDisconnect = new SlotWait() {
+		public void invoke() {
+			mDelay.reset(5000);
+			return;
+		}
+	};
+
+	public void start() {
+		mRobot = new MyTalkRobot(mContext);
+		mRobot.onDisconnect(onDisconnect);
+		mRobot.start();
+		return;
+	}
+
+	public void close() {
+		mRobot.close();
+		mDelay.clean();
 	}
 }

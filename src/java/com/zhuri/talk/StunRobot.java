@@ -1,5 +1,6 @@
 package com.zhuri.talk;
 
+import java.util.List;
 import java.nio.channels.*;
 import java.net.InetAddress;
 import java.io.IOException;
@@ -15,8 +16,8 @@ import com.zhuri.talk.protocol.Body;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Message;
 
-public class StunRobot implements Runnable {
-	private Packet packet;
+class StunInvoke implements Runnable, TalkRobot.IReplyable {
+	private String mFrom;
 	private STUNClient client;
 	private TalkClient mClient;
 	private DatagramChannel datagram;
@@ -25,20 +26,15 @@ public class StunRobot implements Runnable {
 	private SlotWait d = new SlotWait(this);
 	private SlotTimer t = new SlotTimer(this);
 
-	public StunRobot(TalkClient tclient,
-			SlotSlot disconner, Packet p, String[] parts) {
+	public StunInvoke(String[] parts) {
 		int port = 19302;
 		String server = "stun.l.google.com";
-
-		mClient = tclient;
-		mDisconner = disconner;
 
 		try {
 			if (parts.length > 1)
 				server = parts[1];
 			if (parts.length > 2)
 				port = Integer.parseInt(parts[2]);
-			packet = p;
 			datagram = DatagramChannel.open();
 			client = new STUNClient(datagram, server, port);
 		} catch (IOException e) {
@@ -46,7 +42,26 @@ public class StunRobot implements Runnable {
 		}
 	}
 
-	public void start() {
+	@Override
+	public void setCancel(SlotSlot cancel) {
+		mDisconner = cancel;
+		return;
+	}
+
+	@Override
+	public void setReply(String reply) {
+		mFrom = reply;
+		return;
+	}
+
+	@Override
+	public void setTalk(TalkClient client) {
+		mClient = client;
+		return;
+	}
+
+	@Override
+	public void invoke() {
 		mDisconner.record(d);
 		client.requestMapping(r);
 		t.reset(5000);
@@ -54,14 +69,19 @@ public class StunRobot implements Runnable {
 
 	public void run() {
 		Message reply = new Message();
-		Message message = new Message(packet);
+		StringBuilder builder = new StringBuilder();
 
-		reply.setTo(message.getFrom());
+		reply.setTo(mFrom);
+		builder.append("l: ");
+		builder.append(String.valueOf(datagram.socket().getLocalPort()));
+		builder.append("\n");
+		builder.append("e: ");
+		builder.append(client.getMapping().toString());
 
 		if (r.completed())
-			reply.add(new Body(client.getMapping().toString()));
+			reply.add(new Body(builder.toString()));
 		else if (t.completed())
-			reply.add(new Body("time out"));
+			reply.add(new Body("stun: time out"));
 
 		if (!d.completed())
 			mClient.put(reply);
@@ -81,3 +101,16 @@ public class StunRobot implements Runnable {
 		d.clean();
 	}
 }
+
+public class StunRobot implements Scriptor.ICommandInterpret {
+	public static void install(Scriptor scriptor) {
+		scriptor.registerCommand("stun", new StunRobot());
+		return;
+	}
+
+	public Scriptor.IInvokable createInvoke(List<String> params) {
+		String[] arr = new String[params.size()];
+		return new StunInvoke(params.toArray(arr));
+	}
+}
+

@@ -9,7 +9,7 @@ import com.zhuri.slot.SlotSlot;
 import com.zhuri.slot.SlotWait;
 import com.zhuri.slot.SlotTimer;
 import com.zhuri.net.STUNClient;
-import com.zhuri.net.UPNPClient;
+import com.zhuri.net.UPnpControler;
 import com.zhuri.util.InetUtil;
 
 import com.zhuri.talk.TalkClient;
@@ -17,35 +17,23 @@ import com.zhuri.talk.protocol.Body;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Message;
 
-class UpnpInvoke implements Runnable, TalkRobot.IReplyable {
+class UPnpCtrlInvoke implements Runnable, TalkRobot.IReplyable {
 	private String mFrom;
-	private UPNPClient client;
-	private TalkClient mClient;
-	private DatagramChannel datagram;
-	private SlotSlot mDisconner = null;
-	private SlotWait r = new SlotWait(this);
+	private String[]mParams;
+	private SlotSlot mCancel = null;
+	private TalkClient mClient = null;
 	private SlotWait d = new SlotWait(this);
 	private SlotTimer t = new SlotTimer(this);
+	private UPnpControler client = new UPnpControler(this);
 
-	public UpnpInvoke(String[] parts) {
-		int port = 1900;
-		String server = null;
-
-		try {
-			if (parts.length > 1)
-				server = parts[1];
-			if (parts.length > 2)
-				port = Integer.parseInt(parts[2]);
-			datagram = DatagramChannel.open();
-			client = new UPNPClient(datagram, server, port);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public UPnpCtrlInvoke(String[] parts) {
+		mParams = parts;
+		return;
 	}
 
 	@Override
 	public void setCancel(SlotSlot cancel) {
-		mDisconner = cancel;
+		mCancel = cancel;
 		return;
 	}
 
@@ -63,8 +51,8 @@ class UpnpInvoke implements Runnable, TalkRobot.IReplyable {
 
 	@Override
 	public void invoke() {
-		mDisconner.record(d);
-		client.search(r);
+		client.start(mParams);
+		mCancel.record(d);
 		t.reset(5000);
 	}
 
@@ -72,11 +60,10 @@ class UpnpInvoke implements Runnable, TalkRobot.IReplyable {
 		Message reply = new Message();
 
 		reply.setTo(mFrom);
-
-		if (r.completed())
-			reply.add(new Body("UPNP: " + client.getSearchResult()));
+		if (client.completed())
+			reply.add(new Body("ctrl: " + client.getResponse()));
 		else if (t.completed())
-			reply.add(new Body("time out"));
+			reply.add(new Body("ctrl: time out"));
 
 		if (!d.completed())
 			mClient.put(reply);
@@ -85,27 +72,21 @@ class UpnpInvoke implements Runnable, TalkRobot.IReplyable {
 	}
 
 	public void close() {
-		try {
-			datagram.close();
-			client.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		client.close();
 		t.clean();
-		r.clean();
 		d.clean();
 	}
 }
 
-public class UpnpRobot implements Scriptor.ICommandInterpret {
+public class UPnpCtrlRobot implements Scriptor.ICommandInterpret {
 	public static void install(Scriptor scriptor) {
-		scriptor.registerCommand("upnp", new UpnpRobot());
+		scriptor.registerCommand("upnpctrl", new UPnpCtrlRobot());
 		return;
 	}
 
 	public Scriptor.IInvokable createInvoke(List<String> params) {
 		String[] arr = new String[params.size()];
-		return new UpnpInvoke(params.toArray(arr));
+		return new UPnpCtrlInvoke(params.toArray(arr));
 	}
 }
 

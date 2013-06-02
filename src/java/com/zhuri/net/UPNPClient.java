@@ -19,15 +19,20 @@ public class UPNPClient {
 
 	public UPNPClient(DatagramChannel channel, String domain, int port) {
 
+		this.channel = channel;
+
 		try {
-			this.channel = channel;
 			this.channel.socket().bind(null);
 			this.channel.socket().setBroadcast(true);
 			this.slchannel = SlotChannel.open(channel);
 			this.stunServer = InetUtil.getInetSocketAddress(domain == null? UNPN_SEARCH_ADDRESS: domain, port);
 		} catch (Exception e) {
+			try {
+				stunServer = InetUtil.getInetSocketAddress(UNPN_SEARCH_ADDRESS, port);
+			} catch (Exception x) {
+				x.printStackTrace();
+			}
 			e.printStackTrace();
-			System.exit(0);
 		}
 
 		this.slep = new SlotSlot();

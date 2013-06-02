@@ -250,6 +250,18 @@ public class SlotThread {
 		marker.cancel();
 		return true;
 	}
+
+	private final static Runnable mLooper = new Runnable() {
+		public void run() {
+			while (step());
+			return;
+		}
+	};
+
+	public static Runnable getLooper() {
+		/* call getLooper() */
+		return mLooper; 
+	}
 	/* END: implement slot module */
 
 	/* BEGIN: implement channel module */
@@ -496,8 +508,9 @@ public class SlotThread {
 			return;
 		}
 
-		void schedule() {
+		public void schedule() {
 			SlotThread.schedule(this);
+			return;
 		}
 
 		public void cancel() {

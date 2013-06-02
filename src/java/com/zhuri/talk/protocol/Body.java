@@ -8,7 +8,8 @@ public class Body extends Packet {
 	}
 
 	public String toString() {
-		return "<body>" + mText + "</body>";
+		String r1 = mText.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+		return "<body>" + r1 + "</body>";
 	}
 }
 

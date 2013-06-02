@@ -217,24 +217,22 @@ public class STUNClient {
 		return null;
 	}
 
-	public static InetSocketAddress getLocal() {
+	public InetSocketAddress getLocal() {
 		int port = 0;
-		InetAddress address = null;
-		InetSocketAddress localAdress = null;
+		InetAddress address1 = null;
+		InetSocketAddress address2 = null;
+
+		DatagramSocket datagram = channel.socket();
+		address1 = datagram.getLocalAddress();
+		port = datagram.getLocalPort();
 
 		try {
-			DatagramSocket datagram = new DatagramSocket();
-			datagram.connect(InetUtil.getInetSocketAddress("8.8.8.8", 53));
-			address = datagram.getLocalAddress();
-			//port = datagram.socket().getLocalPort();
-			datagram.close();
-			localAdress = new InetSocketAddress(address, port);
-			System.out.println("local address: " + localAdress);
+			address2 = new InetSocketAddress(address1, port);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		return localAdress;
+		return address2;
 	}
 
 	public InetSocketAddress getMapping() {
@@ -284,7 +282,7 @@ class TestSTUNClient {
 
 	public void start() {
 		ByteBuffer b = client.requestMapping();
-		STUNClient.getLocal();
+		client.getLocal();
 		client.send(b, w);
 	}
 }

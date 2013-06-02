@@ -33,7 +33,7 @@ class UPnPData {
 	}
 }
 
-public class UPnPClient {
+public class UPnpControler extends SlotWait {
 
 	final static String UPNP_SEARCH_ACTION = 
 		"M-SEARCH * HTTP/1.1\r\n" +
@@ -75,16 +75,27 @@ public class UPnPClient {
 	private Connector mConnector = new Connector();
 	private ByteBuffer mResponse = ByteBuffer.allocate(80000);
 
-	public UPnPClient() {
+	public UPnpControler(Runnable runnable) {
+		super(runnable);
 	}
 
-	public UPnPClient(String url, String scheme) {
-		mUrl = url;
-		mScheme = (scheme == null? UPNP_DEVICES_NAME[1]: scheme);
-	}
+	public void start(String[] params) {
+		UPnPData pnpData = new UPnPData();
 
-	public int searchDevice(String type) {
-		return 0;
+		if (params.length > 3) {
+			mUrl = params[1];
+			mScheme = (params[2].equals("")? UPNP_DEVICES_NAME[1]: params[2]);
+			for (int i = 4; i < params.length; i++) {
+				String[] pairs = params[i].split("=", 2);
+				if (pairs.length == 2
+						&& !pairs[0].equals(""))
+					pnpData.add(pairs[0], pairs[1]);
+			}
+
+			pnpRequest(params[3], pnpData);
+		}
+
+		return;
 	}
 
 	public int getExternalIPAddress() {
@@ -147,12 +158,17 @@ public class UPnPClient {
 		}
 
 		String content = String.format(UPNP_REQUEST_CONTENT, action, mScheme, builder.toString(), action);
-		mRequest = String.format(UPNP_REQUEST_HEADER, path, host, port == -1? "": ":" + port, content.length(), mScheme, action) + content;
+		mRequest = String.format(UPNP_REQUEST_HEADER, path, host, port == -1? "": ":" + port, content.length(), mScheme, action) + "\r\n" + content;
 
 		mConnector.connect(port == -1? host + ":80": host + ":" + port);
 		mConnector.waitO(mWaitOut);
 		mConnector.waitI(mWaitIn);
 		return 0;
+	}
+
+	public String getResponse() {
+		byte[] arr = mResponse.array();
+		return new String(arr, 0, mResponse.position());
 	}
 
 	private SlotWait mWaitIn = new SlotWait() {
@@ -162,15 +178,19 @@ public class UPnPClient {
 			try {
 				count = mConnector.read(mResponse);
 			} catch (IOException e) {
+				UPnpControler.this.schedule();
 				e.printStackTrace();
-				close();
 				return;
 			}
 
 			if (count == -1) {
-				close();
+				UPnpControler.this.schedule();
+				mWaitIn.clear();
 				return;
 			}
+
+			mConnector.waitI(mWaitIn);
+			return;
 		}
 	};
 
@@ -180,11 +200,11 @@ public class UPnPClient {
 			ByteBuffer buffer = ByteBuffer.wrap(mRequest.getBytes());
 
 			try {
-				System.out.println("sending http header " + mRequest);
+				System.out.println("sending http header\r\n" + mRequest);
 				count = mConnector.write(buffer);
 			} catch (IOException e) {
+				UPnpControler.this.schedule();
 				e.printStackTrace();
-				close();
 			}
 
 			return;

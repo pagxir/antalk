@@ -9,7 +9,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.zhuri.slot.*;
-import com.zhuri.talk.TalkRobot;
+import com.zhuri.talk.RoidTalkRobot;
 
 public class TalkService extends Service implements Runnable {
 	private Thread worker = null;
@@ -63,7 +63,7 @@ public class TalkService extends Service implements Runnable {
 	}
 
 	private SlotAsync mAsync;
-	private TalkRobot mClient;
+	private RoidTalkRobot mClient;
 
 	final private Runnable mQuit = new Runnable() {
 		public void run() {
@@ -74,7 +74,7 @@ public class TalkService extends Service implements Runnable {
 	};
 
 	private void initialize() {
-		mClient = new TalkRobot(this);
+		mClient = new RoidTalkRobot(this);
 		mClient.start();
 
 		mAsync = new SlotAsync(mQuit);

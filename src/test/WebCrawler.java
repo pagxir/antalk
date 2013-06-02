@@ -80,8 +80,12 @@ class HttpCrawler {
 public class WebCrawler {
 	URL mUrl;
 
-	public WebCrawler(String url) throws Exception {
-		mUrl = new URL(url);
+	public WebCrawler(String url) {
+		try {
+			mUrl = new URL(url);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void start() {
