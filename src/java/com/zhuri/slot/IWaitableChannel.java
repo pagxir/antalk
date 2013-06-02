@@ -6,8 +6,8 @@ import com.zhuri.slot.SlotWait;
 
 public interface IWaitableChannel {
 	public void waitI(SlotWait wait);
-	public void waitO(SlotWait wait);
 	public long read(ByteBuffer dst) throws IOException;
+	public void waitO(SlotWait wait);
 	public long write(ByteBuffer src) throws IOException;
 }
 
