@@ -64,6 +64,13 @@ public class FastXmlVisitor {
 		return retval;
 	}
 
+	public static String textFormat(String text) {
+		String r1 = text.replaceAll("&", "&amp;").
+			replaceAll("<", "&lt;").replaceAll(">", "&gt;").
+			replaceAll("\"", "&quot;").replaceAll("\'", "&apos;");
+		return r1;
+	}
+
 	public static String fastFormat(Element element) {
 		int count = 0;
 		Element child;
@@ -89,7 +96,7 @@ public class FastXmlVisitor {
 
 			switch (node.getNodeType()) {
 				case Node.TEXT_NODE:
-					content += node.getNodeValue();
+					content += textFormat(node.getNodeValue());
 					break;
 
 				case Node.ELEMENT_NODE:
