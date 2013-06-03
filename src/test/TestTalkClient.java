@@ -39,6 +39,7 @@ public class TestTalkClient {
 		mRobot = new TalkRobot(client);
 		mRobot.onDisconnect(onDisconnect);
 		client.start("笑天孔后", "uc.sina.com.cn", "GAkJoEtq75x9", "xmpp.uc.sina.com.cn:5222");
+		client.setResource("java");
 		return;
 	}
 }

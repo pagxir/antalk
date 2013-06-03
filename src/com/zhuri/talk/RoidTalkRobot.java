@@ -332,7 +332,7 @@ class MyTalkRobot extends TalkRobot {
 	public void start() {
 		String port;
 		SharedPreferences pref;
-		String user, domain, server, password;
+		String user, domain, server, password, resource;
 
 		pref = PreferenceManager.getDefaultSharedPreferences(mContext);
 		port = pref.getString("port", "5222");
@@ -340,8 +340,10 @@ class MyTalkRobot extends TalkRobot {
 		domain = pref.getString("domain", "gmail.com");
 		server = pref.getString("server", "xmpp.l.google.com");
 		password = pref.getString("password", "L8PaPUL1nfQT");
+		resource = pref.getString("resource", "robot");
 
 		mClient.start(user, domain, password, server + ":" + port);
+		mClient.setResource(resource);
 		return;
 	}
 }
