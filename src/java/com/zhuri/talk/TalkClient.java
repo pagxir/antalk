@@ -48,7 +48,7 @@ public class TalkClient {
 	final private static String XYHOST  = "192.168.42.129:1800";
 
 	private long mLastActive = 0;
-	final private int mInterval = 30000;
+	final private int mInterval = 60000;
 	final private SlotSlot mESlot = new SlotSlot();
 	final private Connector mConnector = new Connector(); //new XyConnector(XYHOST);
 	final private OutgoingIQManager mIQManager = new OutgoingIQManager();
@@ -177,6 +177,12 @@ public class TalkClient {
 	private String mDomain;
 	private String mServer;
 	private String mPassword;
+	
+	private Bind mBind = new Bind();
+	public void setResource(String resource) {
+		mBind = new Bind(resource);
+		return;
+	}
 
 	public void start(String user, String domain,
 			String password, String server) {
@@ -295,7 +301,7 @@ public class TalkClient {
 		Packet presense;
 		IQPacket packet;
 
-		packet = mIQManager.createPacket(new Bind());
+		packet = mIQManager.createPacket(mBind);
 		packet.setType("set");
 		mXmlChannel.put(packet);
 

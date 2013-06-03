@@ -46,7 +46,7 @@ public class SampleXmlChannel {
 				try {
 					mXmlOpened = mXmlParser.open(mXmlBuffer);
 				} catch (Exception e) {
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 
 				if (mXmlOpened) mXmlBuffer.mark();
@@ -65,7 +65,7 @@ public class SampleXmlChannel {
 					tryNextRead();
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 				tryNextRead();
 			}
 

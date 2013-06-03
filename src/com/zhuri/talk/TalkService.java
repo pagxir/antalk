@@ -7,6 +7,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
+import android.net.wifi.WifiManager;
 
 import com.zhuri.slot.*;
 import com.zhuri.talk.RoidTalkRobot;
@@ -14,6 +15,7 @@ import com.zhuri.talk.RoidTalkRobot;
 public class TalkService extends Service implements Runnable {
 	private Thread worker = null;
 	private boolean running = false;
+	private WifiManager.WifiLock mWifiLock = null;
 	
 	static final String TAG = "TALK";
 
@@ -31,7 +33,12 @@ public class TalkService extends Service implements Runnable {
 	public void onCreate() {
 		super.onCreate();
 		Log.i(TAG, "onCreate");
+
+		WifiManager wifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+		mWifiLock = wifiManager.createWifiLock("com.zhuri.talk");
+		mWifiLock.acquire();
 		
+        SlotThread.Init();
 		worker = new Thread(this);
 		running = true;
 		worker.start();
@@ -42,8 +49,9 @@ public class TalkService extends Service implements Runnable {
 		super.onDestroy();
 		Log.i(TAG, "onDestroy");
 		
+		SlotThread.quit();
+
 		try {
-			mAsync.toggle();
 			worker.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -53,6 +61,7 @@ public class TalkService extends Service implements Runnable {
 			throw new RuntimeException("worker thread should not running.");
 		}
 		
+		mWifiLock.release();
 		worker = null;
 	}
 
@@ -62,23 +71,11 @@ public class TalkService extends Service implements Runnable {
 		super.onStart(intent, startId);
 	}
 
-	private SlotAsync mAsync;
 	private RoidTalkRobot mClient;
-
-	final private Runnable mQuit = new Runnable() {
-		public void run() {
-			mClient.close();
-			SlotThread.stop();
-			return;
-		}
-	};
 
 	private void initialize() {
 		mClient = new RoidTalkRobot(this);
 		mClient.start();
-
-		mAsync = new SlotAsync(mQuit);
-		mAsync.setup();
 		return;
 	}
 
@@ -86,16 +83,16 @@ public class TalkService extends Service implements Runnable {
 	public void run() {
 		Log.i(TAG, "run prepare");
 
+		initialize();
         try {
-            SlotThread.Init();
-			initialize();
             while (SlotThread.step());
         } catch (Exception e) {
             e.printStackTrace();
 			stopSelf();
         }
 		
-		Log.i(TAG, "run finish");
+		mClient.close();
 		running = false;
+		Log.i(TAG, "run finish");
 	}
 }

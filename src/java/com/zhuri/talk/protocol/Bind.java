@@ -1,12 +1,22 @@
 package com.zhuri.talk.protocol;
 
 public class Bind extends Packet {
-	final static String bind = "<bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'/>";
-
-	final static String resource = "<resource>ROBOT-V1</resource>";
 	final static String bind_with_resource = "<bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'>";
+	final static String bind_without_resource = "<bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'/>";
 
+	public Bind() {
+		resource = null;
+	}
+
+	public Bind(String name) {
+		resource = "<resource>" + name + "</resource>";
+	}
+
+	private String resource = null;
 	public String toString() {
-		return bind_with_resource + resource + "</bind>";
+		if (resource != null)
+			return bind_with_resource + resource + "</bind>";
+		return bind_without_resource;
 	}
 }
+
