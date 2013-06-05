@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 import android.net.wifi.WifiManager;
@@ -16,6 +17,7 @@ public class TalkService extends Service implements Runnable {
 	private Thread worker = null;
 	private boolean running = false;
 	private WifiManager.WifiLock mWifiLock = null;
+	private PowerManager.WakeLock mWakeLock = null;
 	
 	static final String TAG = "TALK";
 
@@ -37,6 +39,10 @@ public class TalkService extends Service implements Runnable {
 		WifiManager wifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
 		mWifiLock = wifiManager.createWifiLock("com.zhuri.talk");
 		mWifiLock.acquire();
+
+		PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
+		mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.zhuri.talk");
+		mWakeLock.acquire();
 		
         SlotThread.Init();
 		worker = new Thread(this);
@@ -62,6 +68,7 @@ public class TalkService extends Service implements Runnable {
 		}
 		
 		mWifiLock.release();
+		mWakeLock.release();
 		worker = null;
 	}
 
