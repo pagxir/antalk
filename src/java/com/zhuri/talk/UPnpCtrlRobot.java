@@ -58,10 +58,11 @@ class UPnpCtrlInvoke implements Runnable, TalkRobot.IReplyable {
 
 	public void run() {
 		Message reply = new Message();
+		String response = client.getResponse();
 
 		reply.setTo(mFrom);
-		if (client.completed())
-			reply.add(new Body("ctrl: " + client.getResponse()));
+		if (client.completed() || response.length() > 0)
+			reply.add(new Body("ctrl: " + response));
 		else if (t.completed())
 			reply.add(new Body("ctrl: time out"));
 
