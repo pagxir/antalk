@@ -76,7 +76,7 @@ class StunInvoke implements Runnable, TalkRobot.IReplyable {
 		builder.append(String.valueOf(datagram.socket().getLocalPort()));
 		builder.append("\n");
 		builder.append("e: ");
-		builder.append(client.getMapping().toString());
+		builder.append(r.completed()? client.getMapping().toString(): "time out");
 
 		if (r.completed())
 			reply.add(new Body(builder.toString()));
