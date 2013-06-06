@@ -30,11 +30,16 @@ class StunInvoke implements Runnable, TalkRobot.IReplyable {
 		int port = 19302;
 		String server = "stun.l.google.com";
 
+		if (parts.length > 1)
+			server = parts[1];
 		try {
-			if (parts.length > 1)
-				server = parts[1];
 			if (parts.length > 2)
 				port = Integer.parseInt(parts[2]);
+		} catch (NumberFormatException e) {
+			port = 3478;
+		}
+
+		try {
 			datagram = DatagramChannel.open();
 			client = new STUNClient(datagram, server, port);
 		} catch (IOException e) {
