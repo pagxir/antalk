@@ -136,20 +136,56 @@ public class SampleXmlChannel {
 		return;
 	}
 
+	private ByteBuffer pendingBuffer = null;
+	private SlotWait mOutWait = new SlotWait() {
+		public void invoke() {
+			if (pendingBuffer == null) {
+				mOSlot.wakeup();
+				return;
+			}
+
+			try {
+				mChannel.write(pendingBuffer);
+			} catch (IOException e) {
+				pendingBuffer.position(pendingBuffer.limit());
+			}
+
+			if (pendingBuffer.hasRemaining()) {
+				mChannel.waitO(mOutWait);
+				return;
+			}
+
+			pendingBuffer = null;
+			mOSlot.wakeup();
+			return;
+		}
+	};
+
 	public boolean put(Packet packet) {
 		long count;
 		String content = packet.toString();
+		ByteBuffer buffer = ByteBuffer.wrap(content.getBytes());
 
 		DEBUG.Print("OUTGOING", content);
+		if (pendingBuffer != null) {
+			DEBUG.Print("TRACE", "packet is pending");
+			return false;
+		}
+
 		try {
-			count = mChannel.write(ByteBuffer.wrap(content.getBytes()));
+			count = mChannel.write(buffer);
 		} catch (IOException e) {
 			e.printStackTrace();
 			lastRead = -1;
 			return false;
 		}
 
-		DEBUG.Print("OUTGOING", "put count = " + count);
+		if (buffer.hasRemaining()) {
+			mChannel.waitO(mOutWait);
+			pendingBuffer = buffer;
+			return false;
+		}
+
 		return true;
 	}
 

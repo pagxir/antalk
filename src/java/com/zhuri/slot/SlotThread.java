@@ -546,13 +546,13 @@ public class SlotThread {
 			return (flags != 0);
 		}
 
-		boolean started() {
+		public boolean started() {
 			int flags = this.flags;
 			flags &= (WT_INACTIVE| WT_COMPLETE);
 			return (flags != WT_INACTIVE);
 		}
 
-		boolean active() {
+		public boolean active() {
 			int flags = this.flags;
 			flags &= WT_INACTIVE;
 			return (flags == 0);

@@ -24,6 +24,7 @@ public class WaitableSslChannel implements IWaitableChannel {
 	private IWaitableSslChannel ioProxy;
 	private SSLEngineResult.HandshakeStatus status;
 
+	private ByteBuffer tempBuffer = null;
 	private ByteBuffer readBuffer = ByteBuffer.allocate(20000);
 	private ByteBuffer writeBuffer = ByteBuffer.allocate(20000);
 
@@ -54,10 +55,28 @@ public class WaitableSslChannel implements IWaitableChannel {
 	private final SlotWait mOutWait = new SlotWait() {
 		public void invoke() {
 			DEBUG.Print(LOG_TAG, "mOutWait");
+
+			if (tempBuffer != null) {
+				try {
+					channel.write(tempBuffer);
+				} catch (IOException e) {
+					tempBuffer.position(tempBuffer.limit());
+				}
+
+				if (tempBuffer.hasRemaining()) {
+					channel.waitO(mOutWait);
+					return;
+				}
+
+				tempBuffer.clear();
+				tempBuffer = null;
+			}
+
 			if (ioProxy == ProxyIO) {
 				mOutSlot.wakeup();
 				return;
 			}
+
 			sslInvoke();
 		}
 	};
@@ -94,7 +113,7 @@ public class WaitableSslChannel implements IWaitableChannel {
 		}
 
 		public void waitO(SlotWait wait) {
-			channel.waitI(wait);
+			channel.waitO(wait);
 		}
 
 		public long read(ByteBuffer dst) throws IOException {
@@ -171,26 +190,27 @@ public class WaitableSslChannel implements IWaitableChannel {
 			long produced = 0;
 			SSLEngineResult result = null;
 
-			do {
-				result = engine.wrap(src, writeBuffer);
-				status = result.getHandshakeStatus();
-				produced += result.bytesProduced();
-			} while (status == SSLEngineResult.HandshakeStatus.NEED_WRAP);
-
-			if (src.hasRemaining()) {
-				DEBUG.Print("WaitableSslChannel", "write error");
-				return -1;
+			if (tempBuffer != null) {
+				DEBUG.Print(LOG_TAG, "waiting flush buffer");
+				return 0;
 			}
+
+			DEBUG.Assert(writeBuffer.hasRemaining());
+			result = engine.wrap(src, writeBuffer);
 
 			writeBuffer.flip();
-			produced = channel.write(writeBuffer);
+			channel.write(writeBuffer);
 
 			if (writeBuffer.hasRemaining()) {
-				DEBUG.Print("WaitableSslChannel", "write error");
-				return -1;
+				DEBUG.Print(LOG_TAG, "pending for flush buffer");
+				tempBuffer = writeBuffer;
+				channel.waitO(mOutWait);
+				return result.bytesConsumed();
 			}
+
+			DEBUG.Print(LOG_TAG, "write buffer " + writeBuffer.limit() + " " + writeBuffer.position());
 			writeBuffer.clear();
-			return produced;
+			return result.bytesConsumed();
 		}
 	};
 
@@ -222,29 +242,29 @@ public class WaitableSslChannel implements IWaitableChannel {
 				switch (status) {
 					case NEED_TASK:
 						//{
-						Runnable task = engine.getDelegatedTask();
-						while (task != null) {
-							task.run();
-							task = engine.getDelegatedTask();
-						}
+						engine.getDelegatedTask().run();
 						status = engine.getHandshakeStatus();
 						break;
 						//}
 
 					case NEED_WRAP:
 						//{
-						long produced = 0, sent = 0;
-						while (status == SSLEngineResult.HandshakeStatus.NEED_WRAP) {
-							result = engine.wrap(EMPTY, writeBuffer);
-							status = result.getHandshakeStatus();
-							produced += result.bytesProduced();
-						}
+						long produced = 0;
+						DEBUG.Assert(tempBuffer == null);
 
-						DEBUG.Assert(writeBuffer.position() == produced);
+						result = engine.wrap(EMPTY, writeBuffer);
+						status = result.getHandshakeStatus();
+
+						DEBUG.Assert(writeBuffer.position() == result.bytesProduced());
+
 						writeBuffer.flip();
-						sent = channel.write(writeBuffer);
-						DEBUG.Assert(sent == produced);
-						writeBuffer.clear();
+						channel.write(writeBuffer);
+						if (writeBuffer.hasRemaining()) {
+							tempBuffer = writeBuffer;
+							channel.waitO(mOutWait);
+							return;
+						}
+						writeBuffer.compact();
 						break;
 						//}
 
@@ -264,10 +284,14 @@ public class WaitableSslChannel implements IWaitableChannel {
 								break;
 							}
 
-							writeBuffer.clear();
-							result = engine.unwrap(readBuffer, writeBuffer);
+							ByteBuffer b = ByteBuffer.allocate(10000);
+							result = engine.unwrap(readBuffer, b);
 							status = result.getHandshakeStatus();
 							bytesConsumed += result.bytesConsumed();
+
+							DEBUG.Print(LOG_TAG, "limit " + b.limit());
+							DEBUG.Print(LOG_TAG, "position " + b.position());
+							DEBUG.Assert(b.position() == 0);
 
 							if (0 == result.bytesConsumed()) {
 								DEBUG.Print(LOG_TAG, "need more buffer data");
