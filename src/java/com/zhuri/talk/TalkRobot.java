@@ -15,6 +15,7 @@ import com.zhuri.talk.StunRobot;
 import com.zhuri.talk.protocol.Body;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Message;
+import com.zhuri.talk.protocol.Presence;
 
 public class TalkRobot {
 
@@ -43,6 +44,18 @@ public class TalkRobot {
 
 	protected void onDisconnect() {
 		/* TODO: add stub */
+		return;
+	}
+
+	public void presence(String presence) {
+		Presence packet;
+
+		if (mClient != null) {
+			packet = new Presence();
+			packet.setStatus(presence);
+			mClient.put(packet);
+		}
+
 		return;
 	}
 

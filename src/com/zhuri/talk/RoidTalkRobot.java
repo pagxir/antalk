@@ -7,6 +7,7 @@ import com.zhuri.util.DEBUG;
 import com.zhuri.slot.SlotSlot;
 import com.zhuri.slot.SlotWait;
 import com.zhuri.slot.SlotTimer;
+import com.zhuri.slot.SlotAsync;
 import com.zhuri.pstcp.AppFace;
 import com.zhuri.util.InetUtil;
 
@@ -354,6 +355,7 @@ public class RoidTalkRobot {
 	
 	public RoidTalkRobot(Context context) {
 		mContext = context;
+		mPresence.setup();
 		return;
 	}
 
@@ -370,6 +372,22 @@ public class RoidTalkRobot {
 			return;
 		}
 	};
+
+	private String newPresence = "";
+	final private Runnable updater = new Runnable() {
+		public void run() {
+			if (mRobot != null)
+				mRobot.presence(newPresence);
+			return;
+		}
+	};
+
+	final private SlotAsync mPresence = new SlotAsync(updater);
+	public void updatePresence(String presence) {
+		newPresence = presence;
+		mPresence.toggle();
+		return;
+	}
 
 	public void start() {
 		mRobot = new MyTalkRobot(mContext);

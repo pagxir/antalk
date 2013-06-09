@@ -171,6 +171,32 @@ public class UPnpControler extends SlotWait {
 		return new String(arr, 0, mResponse.position());
 	}
 
+	private boolean httpContentCompleted(ByteBuffer response) {
+		String head;
+		byte[] stream = response.array();
+
+		for (int i = 0; i < response.position() - 4; i++) {
+			if (stream[i] == '\r' && stream[i + 1] == '\n'
+					&& stream[i + 2] == '\r' && stream[i + 3] == '\n') {
+				String[] parts;
+				head = new String(stream, 0, i);
+				parts = head.split("\r\n");
+
+				for (String part: parts) {
+					if (part.matches("^[Cc]ontent-[Ll]ength: *[0-9][0-9]*$")) {
+						String numbers = part.replaceAll("^[^0-9]*([0-9][0-9]*)[^0-9]*$", "$1");
+						int length = numbers.equals("")? 800000: Integer.parseInt(numbers);
+						return (length + i + 4 >= response.position());
+					}
+				}
+
+				break;
+			}
+		}
+
+		return false;
+	}
+
 	private SlotWait mWaitIn = new SlotWait() {
 		public void invoke() {
 			long count = -1;
@@ -183,7 +209,7 @@ public class UPnpControler extends SlotWait {
 				return;
 			}
 
-			if (count == -1) {
+			if (count == -1 || httpContentCompleted(mResponse)) {
 				UPnpControler.this.schedule();
 				mWaitIn.clear();
 				return;

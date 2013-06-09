@@ -568,8 +568,10 @@ public class SlotThread {
 		}
 
 		final public void invoke() {
-			if (signaled)
+			if (signaled) {
+				signaled = false;
 				runnable.run();
+			}
 		}
 
 		/* this method can call from other thread. */
