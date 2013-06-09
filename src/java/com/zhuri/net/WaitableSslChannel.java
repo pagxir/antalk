@@ -208,7 +208,6 @@ public class WaitableSslChannel implements IWaitableChannel {
 				return result.bytesConsumed();
 			}
 
-			DEBUG.Print(LOG_TAG, "write buffer " + writeBuffer.limit() + " " + writeBuffer.position());
 			writeBuffer.clear();
 			return result.bytesConsumed();
 		}

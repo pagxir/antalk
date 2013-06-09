@@ -23,6 +23,7 @@ class UPnpCtrlInvoke implements Runnable, TalkRobot.IReplyable {
 	private SlotSlot mCancel = null;
 	private TalkClient mClient = null;
 	private SlotWait d = new SlotWait(this);
+	private SlotWait r = new SlotWait(this);
 	private SlotTimer t = new SlotTimer(this);
 	private UPnpControler client = new UPnpControler(this);
 
@@ -56,24 +57,66 @@ class UPnpCtrlInvoke implements Runnable, TalkRobot.IReplyable {
 		t.reset(5000);
 	}
 
+	private int mOffset = 0;
+	private int lineParse(String lines, int from) {
+		int finish = from;
+
+		for (int offset = from; offset < lines.length(); offset++) {
+			if (lines.charAt(offset) == '\n') {
+				finish = offset + 1;
+			} else if (offset > from + 8000) {
+				finish = (from < finish? finish: offset);
+				break;
+			}
+		}
+
+		return finish;
+	}
+
 	public void run() {
-		Message reply = new Message();
+		String line;
 		String response = client.getResponse();
 
-		reply.setTo(mFrom);
-		if (client.completed() || response.length() > 0)
-			reply.add(new Body("ctrl: " + response));
-		else if (t.completed())
+		while (!d.completed() && mOffset < response.length()) {
+			Message reply = new Message();
+
+			reply.setTo(mFrom);
+			if (mOffset + 8000 > response.length()) {
+				line = response.substring(mOffset);
+				mOffset = response.length();
+			} else {
+				int start = mOffset;
+				mOffset = lineParse(response, mOffset);
+				line = response.substring(start, mOffset);
+			}
+
+			if (client.completed())
+				reply.add(new Body(line));
+
+			if (!mClient.put(reply)) {
+				mClient.waitO(r);
+				return;
+			}
+		}
+
+		if (!d.completed() && t.completed()) {
+			Message reply = new Message();
+
+			reply.setTo(mFrom);
 			reply.add(new Body("ctrl: time out"));
 
-		if (!d.completed())
-			mClient.put(reply);
+			if (!mClient.put(reply)) {
+				mClient.waitO(r);
+				return;
+			}
+		}
 
 		close();
 	}
 
 	public void close() {
 		client.close();
+		r.clean();
 		t.clean();
 		d.clean();
 	}

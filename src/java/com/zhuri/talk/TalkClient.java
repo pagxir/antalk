@@ -64,13 +64,13 @@ public class TalkClient {
 		return packet;
 	}
 
-	final public void put(Packet packet) {
+	final public boolean put(Packet packet) {
 		boolean msgIsLooping = stateMatch(WF_DISCONNECT, WF_LASTFINISH);
 
 		if (msgIsLooping)
-			mXmlChannel.put(packet);
+			return mXmlChannel.put(packet);
 
-		return;
+		return false;
 	}
 
 	final public boolean isStreamClosed() {
@@ -79,6 +79,16 @@ public class TalkClient {
 
 	final public void mark() {
 		mXmlChannel.mark(SampleXmlChannel.XML_NEXT);
+		return;
+	}
+
+	final public void waitO(SlotWait wait) {
+		boolean msgIsLooping = stateMatch(WF_DISCONNECT, WF_LASTFINISH);
+
+		if (msgIsLooping)
+			mXmlChannel.waitO(wait);
+		else
+			throw new RuntimeException("illagel state");
 		return;
 	}
 
