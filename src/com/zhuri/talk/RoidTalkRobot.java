@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.Context;
 import android.content.ComponentName;
 import android.content.SharedPreferences;
+import android.os.PowerManager;
 import android.database.Cursor;
 import android.preference.PreferenceManager;
 
@@ -35,14 +36,16 @@ import java.util.Enumeration;
 class MyInvoke implements TalkRobot.IReplyable {
 	private Context mContext;
 	private String[] mParamers;
+	private PowerManager.WakeLock mWakeLock;
 
 	private String mFrom;
 	private SlotSlot mCancel;
 	private TalkClient mClient;
 
-	public MyInvoke(String[] params, Context context) {
+	public MyInvoke(String[] params, Context context, PowerManager.WakeLock lock) {
 		mParamers = params;
 		mContext = context;
+		mWakeLock = lock;
 		return;
 	}
 
@@ -85,6 +88,16 @@ class MyInvoke implements TalkRobot.IReplyable {
 			output = doStunSend(mParamers);
 		} else if (method.equals("stun-name")) {
 			output = AppFace.stunGetName();
+		} else if (method.equals("acquire")) {
+			int timeout = 40 * 60 * 1000;
+			try {
+				timeout = Integer.parseInt(mParamers[1]) * 60 * 1000;
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
+			mWakeLock.acquire(timeout);
+		} else if (method.equals("release")) {
+			mWakeLock.release();
 		}
 
 		reply.add(new Body(output));
@@ -309,18 +322,20 @@ class MyInvoke implements TalkRobot.IReplyable {
 
 class MyTalkRobot extends TalkRobot {
 	private Context mContext;
+	private PowerManager.WakeLock mWakeLock;
 	final private SlotSlot mDisconnect = new SlotSlot();
 
 	final private Scriptor.ICommandInterpret mMyInterpret = new Scriptor.ICommandInterpret() {
 		public Scriptor.IInvokable createInvoke(List<String> params) {
 			String[] arr = new String[params.size()];
-			return new MyInvoke(params.toArray(arr), mContext);
+			return new MyInvoke(params.toArray(arr), mContext, mWakeLock);
 		}
 	};
 
-	public MyTalkRobot(Context context) {
+	public MyTalkRobot(Context context, PowerManager.WakeLock lock) {
 		super(new TalkClient());
 		mContext = context;
+		mWakeLock = lock;
 		mScriptor.registerCommand("am", mMyInterpret);
 		mScriptor.registerCommand("sms", mMyInterpret);
 		mScriptor.registerCommand("version", mMyInterpret);
@@ -328,6 +343,8 @@ class MyTalkRobot extends TalkRobot {
 		mScriptor.registerCommand("ifconfig", mMyInterpret);
 		mScriptor.registerCommand("stun-send", mMyInterpret);
 		mScriptor.registerCommand("stun-name", mMyInterpret);
+		mScriptor.registerCommand("acquire", mMyInterpret);
+		mScriptor.registerCommand("release", mMyInterpret);
 	}
 
 	public void start() {
@@ -352,10 +369,14 @@ class MyTalkRobot extends TalkRobot {
 public class RoidTalkRobot {
 	private Context mContext;
 	private MyTalkRobot mRobot;
+	private PowerManager.WakeLock mWakeLock = null;
 	
 	public RoidTalkRobot(Context context) {
 		mContext = context;
 		mPresence.setup();
+
+		PowerManager powerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
+		mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.zhuri.talk");
 		return;
 	}
 
@@ -390,13 +411,15 @@ public class RoidTalkRobot {
 	}
 
 	public void start() {
-		mRobot = new MyTalkRobot(mContext);
+		mRobot = new MyTalkRobot(mContext, mWakeLock);
 		mRobot.onDisconnect(onDisconnect);
 		mRobot.start();
 		return;
 	}
 
 	public void close() {
+		if (mWakeLock.isHeld())
+			mWakeLock.release();
 		mRobot.close();
 		mDelay.clean();
 	}

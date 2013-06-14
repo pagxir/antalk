@@ -1,12 +1,15 @@
 package com.zhuri.talk;
 
 import android.app.Service;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.os.PowerManager;
 import android.os.BatteryManager;
 import android.util.Log;
@@ -24,6 +27,8 @@ public class TalkService extends Service implements Runnable {
 	private PowerManager.WakeLock mWakeLock = null;
 	
 	static final String TAG = "TALK";
+	static final long INTERVAL_LONG = 45 * 60 * 1000;
+	static final long INTERVAL_SHORT = 3 * 60 * 1000;
 
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -142,6 +147,18 @@ public class TalkService extends Service implements Runnable {
 		}
 	};
 
+	private class AlarmReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (!mWakeLock.isHeld())
+				mWakeLock.acquire(INTERVAL_SHORT);
+			Log.i(TAG, "AlarmReceiver onReceive");
+			return;
+		}
+	};
+
+	private Intent mIntent = new Intent(this, AlarmReceiver.class);
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -155,10 +172,15 @@ public class TalkService extends Service implements Runnable {
 		mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.zhuri.talk");
 		mWakeLock.acquire();
 
-        SlotThread.Init();
+		SlotThread.Init();
 		worker = new Thread(this);
 		running = true;
 		worker.start();
+
+		long realtime = SystemClock.elapsedRealtime() + INTERVAL_LONG;
+		AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, mIntent, 0);
+		am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, realtime, INTERVAL_LONG, pendingIntent);
 
 		IntentFilter batteryLevelFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 		registerReceiver(batteryLevelRcvr, batteryLevelFilter);
@@ -182,9 +204,16 @@ public class TalkService extends Service implements Runnable {
 		}
 		
 		unregisterReceiver(batteryLevelRcvr);
-		mWifiLock.release();
-		mWakeLock.release();
+
+		if (mWifiLock.isHeld())
+			mWifiLock.release();
+		if (mWakeLock.isHeld())
+			mWakeLock.release();
 		worker = null;
+
+		AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, mIntent, 0);
+		am.cancel(pendingIntent);
 	}
 
 	@Override
@@ -204,13 +233,13 @@ public class TalkService extends Service implements Runnable {
 		Log.i(TAG, "run prepare");
 
 		initialize();
-        try {
-            while (SlotThread.step());
-        } catch (Exception e) {
-            e.printStackTrace();
+		try {
+			while (SlotThread.step());
+		} catch (Exception e) {
+			e.printStackTrace();
 			stopSelf();
-        }
-		
+		}
+
 		mClient.close();
 		running = false;
 		Log.i(TAG, "run finish");
