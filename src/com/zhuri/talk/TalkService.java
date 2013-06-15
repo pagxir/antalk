@@ -40,7 +40,7 @@ public class TalkService extends Service implements Runnable {
 		return intent;
 	}
 
-	private BroadcastReceiver batteryLevelRcvr = new BroadcastReceiver() {
+	public BroadcastReceiver batteryLevelRcvr = new BroadcastReceiver() {
 		private String lastOuted = "";
 
 		public void onReceive(Context context, Intent intent) {
@@ -157,12 +157,14 @@ public class TalkService extends Service implements Runnable {
 		}
 	};
 
-	private Intent mIntent = new Intent(this, AlarmReceiver.class);
+	private Intent mIntent = null;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		Log.i(TAG, "onCreate");
+
+		mIntent = new Intent(this, AlarmReceiver.class);
 
 		WifiManager wifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
 		mWifiLock = wifiManager.createWifiLock("com.zhuri.talk");
@@ -170,7 +172,6 @@ public class TalkService extends Service implements Runnable {
 
 		PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
 		mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.zhuri.talk");
-		mWakeLock.acquire();
 
 		SlotThread.Init();
 		worker = new Thread(this);
