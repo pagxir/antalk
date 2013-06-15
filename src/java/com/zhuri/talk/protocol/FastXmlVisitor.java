@@ -6,8 +6,18 @@ import java.io.StringReader;
 import org.xml.sax.InputSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerConfigurationException;
 
-
+import java.io.IOException;  
+import java.io.StringReader;  
+import java.io.StringWriter;  
+  
 public class FastXmlVisitor {
 	private Element element = null;
 
@@ -48,7 +58,7 @@ public class FastXmlVisitor {
 
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(false);
+			factory.setNamespaceAware(true); 
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			StringReader reader = new StringReader(xmlstr);
 			InputSource source = new InputSource(reader);
@@ -71,55 +81,22 @@ public class FastXmlVisitor {
 		return r1;
 	}
 
-	public static String fastFormat(Element element) {
-		int count = 0;
-		Element child;
+	public static String fastFormat(Element e) {  
+		StringWriter writer = new StringWriter();
+		TransformerFactory tf = TransformerFactory.newInstance();
 
-		String content = "";
-		String attrtxt = "";
-
-		String tagEnd = "";
-		String tagStart = "";
-
-		String tagName = element.getTagName();
-		NodeList children = element.getChildNodes();
-		NamedNodeMap attributes = element.getAttributes();
-
-		for (int i = 0; i < attributes.getLength(); i++) {
-			Attr attr = (Attr)attributes.item(i);
-			attrtxt += (" " + attr.getNodeName());
-			attrtxt += ("='" + attr.getNodeValue() + "'");
+		try {
+			Transformer transformer = tf.newTransformer();
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			transformer.transform(new DOMSource(e), new StreamResult(writer));
+		} catch (TransformerConfigurationException ce) {
+			ce.printStackTrace();
+		} catch (TransformerException te) {
+			te.printStackTrace();
 		}
 
-		for (int i = 0; i < children.getLength(); i++) {
-			Node node = children.item(i);
-
-			switch (node.getNodeType()) {
-				case Node.TEXT_NODE:
-					content += textFormat(node.getNodeValue());
-					break;
-
-				case Node.ELEMENT_NODE:
-					child = (Element)node;
-					content += fastFormat(child);
-					break;
-
-				default:
-					throw new RuntimeException("Unkown Support Tag Type");
-			}
-			count++;
-		}
-
-		if (count == 0) {
-			content = "<" + tagName + attrtxt + "/>";
-			return content;
-		}
-
-		tagStart = "<" + tagName + attrtxt + ">";
-		tagEnd = "</" + tagName + ">";
-		
-		return tagStart + content + tagEnd;
-	}
+		return writer.getBuffer().toString().replaceAll("\n|\r", "");
+	}  
 
 	public FastXmlVisitor getElement(String name) {
 		int i;

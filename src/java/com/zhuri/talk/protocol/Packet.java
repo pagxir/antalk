@@ -29,10 +29,25 @@ public class Packet {
 		return "";
 	}
 
+	public String getURI() {
+		if (EMPTY_PACKET != this)
+			return mElement.getNamespaceURI();
+		return "";
+	}
+
 	public String toString() {
 		if (EMPTY_PACKET != this)
 			return FastXmlVisitor.fastFormat(mElement);
 		return super.toString();
+	}
+
+	public boolean matchURI(String uri) {
+		String muri;
+		if (EMPTY_PACKET == this)
+			return false;
+		muri = mElement.getNamespaceURI();
+		System.out.println("URI  " + muri);
+		return uri.equals(muri);
 	}
 
 	public boolean matchTag(String tag) {
@@ -49,15 +64,23 @@ public class Packet {
 		DocumentBuilder builder;
 
 		stream = new ByteArrayInputStream(data, off, length);
-
-		factory.setNamespaceAware(false);
+		factory.setNamespaceAware(true);
 
 		try {
 			builder = factory.newDocumentBuilder();
 			document = builder.parse(stream);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return EMPTY_PACKET;
+			return new Packet(document.getDocumentElement());
+		} catch (Exception e1) {
+			stream = new ByteArrayInputStream(data, off, length);
+			factory.setNamespaceAware(false);
+
+			try {
+				builder = factory.newDocumentBuilder();
+				document = builder.parse(stream);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return EMPTY_PACKET;
+			}
 		}
 
 		return new Packet(document.getDocumentElement());

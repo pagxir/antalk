@@ -10,12 +10,12 @@ import com.zhuri.net.XyConnector;
 import com.zhuri.net.IConnectable;
 import com.zhuri.slot.IWaitableChannel;
 import com.zhuri.net.WaitableSslChannel;
+import com.zhuri.talk.protocol.IQ;
 import com.zhuri.talk.protocol.Body;
 import com.zhuri.talk.protocol.Bind;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Stream;
 import com.zhuri.talk.protocol.Session;
-import com.zhuri.talk.protocol.IQPacket;
 import com.zhuri.talk.protocol.Starttls;
 import com.zhuri.talk.protocol.PlainSasl;
 import com.zhuri.talk.protocol.Message;
@@ -116,7 +116,7 @@ public class TalkClient {
 				disconnect();
 				return;
 			} else if (mLastActive + mInterval < System.currentTimeMillis()) {
-				Packet packet = mIQManager.createPacket(new Keepalive());
+				Packet packet = mIQManager.createQuery(new Keepalive());
 				isAlive = mXmlChannel.put(packet);
 			}
 
@@ -183,6 +183,7 @@ public class TalkClient {
 		return (flags == prev);
 	}
 
+	private String mJID;
 	private String mUser;
 	private String mDomain;
 	private String mServer;
@@ -308,14 +309,14 @@ public class TalkClient {
 	}
 
 	private void initializeFinalLogin() {
+		IQ packet;
 		Packet presense;
-		IQPacket packet;
 
-		packet = mIQManager.createPacket(mBind);
+		packet = mIQManager.createQuery(mBind);
 		packet.setType("set");
 		mXmlChannel.put(packet);
 
-		packet = mIQManager.createPacket(new Session());
+		packet = mIQManager.createQuery(new Session());
 		packet.setType("set");
 		mXmlChannel.put(packet);
 
@@ -332,7 +333,21 @@ public class TalkClient {
 		return;
 	}
 
+	public String getJID() {
+		return mJID;
+	}
+
 	public void processIncomingIQ(Packet packet) {
+		IQ q = new IQ(packet);
+
+		if (q.getType().equals("result")) {
+			Packet result = q.getResult();
+			if (result != null && Bind.isTypeof(result)) {
+				mJID = Bind.getJid(result);
+				return;
+			}
+		}
+
 		return;
 	}
 }

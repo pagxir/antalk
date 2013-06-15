@@ -18,6 +18,7 @@ import com.zhuri.talk.protocol.Message;
 import com.zhuri.talk.protocol.Presence;
 
 public class TalkRobot {
+	static final String TAG = "TalkRobot";
 
 	public interface IReplyable extends Scriptor.IInvokable {
 		public void setTalk(TalkClient client);
@@ -59,6 +60,7 @@ public class TalkRobot {
 		return;
 	}
 
+	private boolean mIsRobotOn = true;
 	private void onMessage(Packet packet) {
 		Message message = new Message(packet);
 
@@ -67,6 +69,19 @@ public class TalkRobot {
 			String msg = message.getContent();
 			if (msg == null || msg.equals("")) {
 				DEBUG.Print("EMPTY Message");
+				return;
+			}
+
+			if (msg.startsWith("off " + mClient.getJID())) {
+				DEBUG.Print(TAG, "robot turn off");
+				mIsRobotOn = false;
+				return;
+			} else if (msg.startsWith("on " + mClient.getJID())) {
+				DEBUG.Print(TAG, "robot turn on");
+				mIsRobotOn = true;
+				return;
+			} else if (!mIsRobotOn) {
+				DEBUG.Print(TAG, "robot is off");
 				return;
 			}
 
