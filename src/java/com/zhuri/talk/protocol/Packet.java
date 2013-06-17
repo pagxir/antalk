@@ -3,6 +3,7 @@ package com.zhuri.talk.protocol;
 import java.io.*;
 import org.w3c.dom.*;
 import javax.xml.parsers.*;
+import org.xml.sax.SAXException;
 
 public class Packet {
 	final static DocumentBuilderFactory factory = 
@@ -59,28 +60,30 @@ public class Packet {
 	}
 
 	public static Packet parse(byte[] data, int off, int length) {
+		Packet packet;
+		packet = parse(true, data, off, length);
+		if (packet != null)
+			return packet;
+		packet = parse(false, data, off, length);
+		if (packet != null)
+			return packet;
+		return EMPTY_PACKET;
+	}
+
+	public static Packet parse(boolean namespace, byte[] data, int off, int length) {
 		Document document;
 		InputStream stream;
 		DocumentBuilder builder;
 
 		stream = new ByteArrayInputStream(data, off, length);
-		factory.setNamespaceAware(true);
+		factory.setNamespaceAware(namespace);
 
 		try {
 			builder = factory.newDocumentBuilder();
 			document = builder.parse(stream);
-			return new Packet(document.getDocumentElement());
 		} catch (Exception e1) {
-			stream = new ByteArrayInputStream(data, off, length);
-			factory.setNamespaceAware(false);
-
-			try {
-				builder = factory.newDocumentBuilder();
-				document = builder.parse(stream);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return EMPTY_PACKET;
-			}
+			/* e1.printStackTrace(); */
+			return null;
 		}
 
 		return new Packet(document.getDocumentElement());
