@@ -91,7 +91,7 @@ class MyInvoke implements TalkRobot.IReplyable {
 		} else if (method.equals("acquire")) {
 			int timeout = 40 * 60 * 1000;
 			try {
-				timeout = Integer.parseInt(mParamers[1]) * 60 * 1000;
+				timeout = mParamers.length > 1? timeout: Integer.parseInt(mParamers[1]) * 60 * 1000;
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
 			}
@@ -358,7 +358,7 @@ class MyTalkRobot extends TalkRobot {
 		domain = pref.getString("domain", "gmail.com");
 		server = pref.getString("server", "xmpp.l.google.com");
 		password = pref.getString("password", "L8PaPUL1nfQT");
-		resource = pref.getString("resource", "robot");
+		resource = pref.getString("resource", "robot-");
 
 		mClient.start(user, domain, password, server + ":" + port);
 		mClient.setResource(resource);
