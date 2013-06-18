@@ -56,6 +56,8 @@ public class Connector implements IWaitableChannel, IConnectable {
 	private void checkConnectException(SocketChannel channel) throws IOException {
 		try {
 			channel.finishConnect();
+		} catch (NoRouteToHostException e) {
+			throw new IOException(e);
 		} catch (NoConnectionPendingException e) {
 			throw new IOException(e);
 		}

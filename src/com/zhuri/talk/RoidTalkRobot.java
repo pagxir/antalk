@@ -91,13 +91,16 @@ class MyInvoke implements TalkRobot.IReplyable {
 		} else if (method.equals("acquire")) {
 			int timeout = 40 * 60 * 1000;
 			try {
-				timeout = mParamers.length > 1? timeout: Integer.parseInt(mParamers[1]) * 60 * 1000;
+				timeout = mParamers.length > 1? Integer.parseInt(mParamers[1]) * 60 * 1000: timeout;
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
 			}
 			mWakeLock.acquire(timeout);
+			output = "acquire " + String.valueOf(timeout / 1000 / 60) + " OK";
 		} else if (method.equals("release")) {
-			mWakeLock.release();
+			if (mWakeLock.isHeld())
+				mWakeLock.release();
+			output = "release OK";
 		}
 
 		reply.add(new Body(output));
