@@ -72,7 +72,8 @@ public class TalkService extends Service implements Runnable {
 						break;
 
 					default:
-						builder.append("plugged=" + plugged);
+						if (plugged != 0)
+							builder.append("plugged=" + plugged);
 						break;
 				}
 
