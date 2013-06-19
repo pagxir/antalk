@@ -3,6 +3,7 @@ package com.zhuri.talk.ui;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.List;
 import java.util.Enumeration;
 
 import com.zhuri.talk.R;
@@ -26,8 +27,14 @@ import android.view.View.OnClickListener;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationListener;
+
 public class TalkRobotStatus extends Activity implements OnClickListener {
 	static final String LOG_TAG ="TalkRobotStatus";
+	private LocationManager mLocationManager = null;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -40,11 +47,74 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 
 		Button stop = (Button)findViewById(R.id.stop);
 		stop.setOnClickListener(this);
+
+		Criteria criteria = new Criteria();
+		criteria.setCostAllowed(true);
+		criteria.setAltitudeRequired(false);
+		criteria.setBearingRequired(false);
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);
+		criteria.setPowerRequirement(Criteria.POWER_LOW);
+
+		mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+		mLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 5000, 5, mLocationListener);
+
+		Location location = mLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+		if (location != null)
+			showLocation(location);
+
+		return;
 	}
+
+	private void showLocation(Location location) {
+		double altitude  = location.getAltitude();
+		double latitude  = location.getLatitude();
+		double longitude = location.getLongitude();
+
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("altitude: ");
+		builder.append(altitude);
+		builder.append("\n");
+		builder.append("latitude: ");
+		builder.append(latitude);
+		builder.append("\n");
+		builder.append("longitude: ");
+		builder.append(longitude);
+		builder.append("\n");
+		builder.append("https://maps.google.com/maps?ll=" + latitude + "," + longitude + "&spn=0.004710,0.007832&t=k&hl=en");
+
+		TextView view = (TextView)findViewById(R.id.location);
+		view.setText(builder.toString());
+		return;
+	}
+
+	final LocationListener mLocationListener = new LocationListener() {
+		@Override
+		public void onLocationChanged(Location location) {
+			showLocation(location);
+		}
+
+		@Override
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+
+		}
+
+		@Override
+		public void onProviderEnabled(String provider) {
+
+		}
+
+		@Override
+		public void onProviderDisabled(String provider) {
+
+		}
+	};
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		mLocationManager.removeUpdates(mLocationListener);
+		return;
 	}
 
 	@Override
