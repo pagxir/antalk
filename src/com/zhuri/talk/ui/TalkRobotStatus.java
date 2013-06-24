@@ -124,7 +124,8 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		mLocationManager.removeUpdates(mLocationListener);
+		if (mLocationManager != null)
+			mLocationManager.removeUpdates(mLocationListener);
 		return;
 	}
 
