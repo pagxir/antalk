@@ -33,4 +33,8 @@
     <string name="bootup">auto start</string>
     <string name="bootup_summary">auto start when phone bootup</string>
 
+    <string name="gps_provider">GPS Provider</string>
+    <string name="network_provider">Network Provider</string>
+    <string name="passive_provider">Passive Provider</string>
+
 </resources>

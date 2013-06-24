@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -48,6 +49,11 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 		Button stop = (Button)findViewById(R.id.stop);
 		stop.setOnClickListener(this);
 
+		return;
+	}
+
+	private String mProvider = null;
+	private void startLocationListen(String provider) {
 		Criteria criteria = new Criteria();
 		criteria.setCostAllowed(true);
 		criteria.setAltitudeRequired(false);
@@ -55,10 +61,11 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
 		criteria.setPowerRequirement(Criteria.POWER_LOW);
 
+		mProvider = provider;
 		mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-		mLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 5000, 5, mLocationListener);
+		mLocationManager.requestLocationUpdates(provider, 5000, 5, mLocationListener);
 
-		Location location = mLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+		Location location = mLocationManager.getLastKnownLocation(provider);
 		if (location != null)
 			showLocation(location);
 
@@ -70,8 +77,12 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 		double latitude  = location.getLatitude();
 		double longitude = location.getLongitude();
 
-
 		StringBuilder builder = new StringBuilder();
+		if (mProvider != null) {
+			builder.append("provider: ");
+			builder.append(mProvider);
+			builder.append("\n");
+		}
 		builder.append("altitude: ");
 		builder.append(altitude);
 		builder.append("\n");
@@ -137,8 +148,24 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(Menu.NONE, Menu.FIRST + 1, 5, R.string.settings).setIcon(android.R.drawable.ic_menu_edit);
-        return true;
+		super.onCreateOptionsMenu(menu);
+		MenuItem item1 = 
+			menu.add(Menu.NONE, Menu.FIRST + 1, 1, R.string.settings)
+			.setIcon(android.R.drawable.ic_menu_edit);
+
+		MenuItem item2 = 
+			menu.add(Menu.NONE, Menu.FIRST + 2, 2, R.string.network_provider)
+			.setIcon(android.R.drawable.ic_menu_day);
+
+		MenuItem item3 = 
+			menu.add(Menu.NONE, Menu.FIRST + 3, 3, R.string.gps_provider)
+			.setIcon(android.R.drawable.ic_menu_agenda);
+
+		MenuItem item4 = 
+			menu.add(Menu.NONE, Menu.FIRST + 4, 4, R.string.passive_provider)
+			.setIcon(android.R.drawable.ic_menu_camera);
+
+		return true;
     }   
 
     @Override
@@ -149,6 +176,27 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
                 Intent settings = new Intent(this, TalkRobotSettings.class);
                 startActivity(settings);
                 break;
+
+			case Menu.FIRST + 2:
+				Toast.makeText(this, "Network Provider", Toast.LENGTH_SHORT);
+				if (mLocationManager != null)
+					mLocationManager.removeUpdates(mLocationListener);
+				startLocationListen(LocationManager.NETWORK_PROVIDER);
+				break;
+
+			case Menu.FIRST + 3:
+				Toast.makeText(this, "GPS Provider", Toast.LENGTH_SHORT);
+				if (mLocationManager != null)
+					mLocationManager.removeUpdates(mLocationListener);
+				startLocationListen(LocationManager.GPS_PROVIDER);
+				break;
+
+			case Menu.FIRST + 4:
+				Toast.makeText(this, "Passive Provider", Toast.LENGTH_SHORT);
+				if (mLocationManager != null)
+					mLocationManager.removeUpdates(mLocationListener);
+				startLocationListen(LocationManager.PASSIVE_PROVIDER);
+				break;
         }   
 
         return false;

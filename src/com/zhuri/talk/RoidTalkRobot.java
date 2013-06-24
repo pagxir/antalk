@@ -197,6 +197,7 @@ class MyInvoke implements TalkRobot.IReplyable {
 			Intent intent = parseIntent(args);
 
 			if (args[1].equals("start")) {
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				mContext.startActivity(intent);
 			} else if (args[1].equals("startservice")) {
 				mContext.startService(intent);
