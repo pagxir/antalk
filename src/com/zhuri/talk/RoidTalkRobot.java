@@ -416,6 +416,7 @@ public class RoidTalkRobot {
 
 	public void start() {
 		mRobot = new MyTalkRobot(mContext, mWakeLock);
+		mRobot.presence(newPresence);
 		mRobot.onDisconnect(onDisconnect);
 		mRobot.start();
 		return;

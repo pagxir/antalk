@@ -64,9 +64,9 @@ public class TalkClient {
 		return packet;
 	}
 
-	private Presence mPresense = new Presence();
+	private Presence mPresence = new Presence();
 	final public TalkClient setPresence(Presence presence) {
-		mPresense = presence;
+		mPresence = presence;
 		put(presence);
 		return this;
 	}
@@ -327,7 +327,7 @@ public class TalkClient {
 		packet.setType("set");
 		mXmlChannel.put(packet);
 
-		mXmlChannel.put(mPresense);
+		mXmlChannel.put(mPresence);
 		return;
 	}
 
