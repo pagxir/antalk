@@ -178,21 +178,21 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
                 break;
 
 			case Menu.FIRST + 2:
-				Toast.makeText(this, "Network Provider", Toast.LENGTH_SHORT);
+				Toast.makeText(this, "Network Provider", Toast.LENGTH_SHORT).show();
 				if (mLocationManager != null)
 					mLocationManager.removeUpdates(mLocationListener);
 				startLocationListen(LocationManager.NETWORK_PROVIDER);
 				break;
 
 			case Menu.FIRST + 3:
-				Toast.makeText(this, "GPS Provider", Toast.LENGTH_SHORT);
+				Toast.makeText(this, "GPS Provider", Toast.LENGTH_SHORT).show();
 				if (mLocationManager != null)
 					mLocationManager.removeUpdates(mLocationListener);
 				startLocationListen(LocationManager.GPS_PROVIDER);
 				break;
 
 			case Menu.FIRST + 4:
-				Toast.makeText(this, "Passive Provider", Toast.LENGTH_SHORT);
+				Toast.makeText(this, "Passive Provider", Toast.LENGTH_SHORT).show();
 				if (mLocationManager != null)
 					mLocationManager.removeUpdates(mLocationListener);
 				startLocationListen(LocationManager.PASSIVE_PROVIDER);
