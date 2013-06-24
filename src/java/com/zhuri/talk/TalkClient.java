@@ -64,6 +64,13 @@ public class TalkClient {
 		return packet;
 	}
 
+	private Presence mPresense = new Presence();
+	final public TalkClient setPresence(Presence presence) {
+		mPresense = presence;
+		put(presence);
+		return this;
+	}
+
 	final public boolean put(Packet packet) {
 		boolean msgIsLooping = stateMatch(WF_DISCONNECT, WF_LASTFINISH);
 
@@ -320,8 +327,7 @@ public class TalkClient {
 		packet.setType("set");
 		mXmlChannel.put(packet);
 
-		presense = new Presence();
-		mXmlChannel.put(presense);
+		mXmlChannel.put(mPresense);
 		return;
 	}
 
