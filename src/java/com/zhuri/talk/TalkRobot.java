@@ -62,7 +62,7 @@ public class TalkRobot {
 	}
 
 	private boolean mIsRobotOn = true;
-	private void onMessage(Packet packet) {
+	protected void onMessage(Packet packet) {
 		Message message = new Message(packet);
 
 		if (message.hasBody()) {

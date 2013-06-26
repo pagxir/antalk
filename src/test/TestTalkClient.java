@@ -19,6 +19,7 @@ import com.zhuri.talk.protocol.Message;
 
 public class TestTalkClient {
 	private TalkRobot mRobot;
+	private TalkClient client;
 
 	final private SlotTimer mDelay = new SlotTimer() {
 		public void invoke() {
@@ -34,9 +35,34 @@ public class TestTalkClient {
 		}
 	};
 
+	public void send(String user, String message) {
+		Message packet = new Message();
+		packet.add(new Body(message));
+		packet.setTo(user);
+		client.put(packet);
+		return;
+	}
+
 	public void start() {
-		TalkClient client = new TalkClient();
-		mRobot = new TalkRobot(client);
+		client = new TalkClient();
+		mRobot = new TalkRobot(client) {
+			@Override
+			protected void onMessage(Packet packet) {
+				Message message = new Message(packet);
+
+				if (message.hasBody()) {
+					String msg = message.getContent();
+					if (msg == null || msg.equals("")) {
+						DEBUG.Print("EMPTY Message");
+						return;
+					}
+
+					DEBUG.Print("Message " + msg);
+					return;
+				}
+			}
+		};
+
 		mRobot.onDisconnect(onDisconnect);
 		client.start("\u7B11\u5929\u5B54\u540E", "uc.sina.com.cn", "GAkJoEtq75x9", "xmpp.uc.sina.com.cn:5222");
 		client.setResource("java");
