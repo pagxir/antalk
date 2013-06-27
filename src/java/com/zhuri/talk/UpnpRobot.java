@@ -56,6 +56,11 @@ class UpnpInvoke implements Runnable, TalkRobot.IReplyable {
 	}
 
 	@Override
+	public void setRobot(TalkRobot robot) {
+		return;
+	}
+
+	@Override
 	public void setTalk(TalkClient client) {
 		mClient = client;
 		return;

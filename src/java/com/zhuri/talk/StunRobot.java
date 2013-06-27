@@ -54,6 +54,11 @@ class StunInvoke implements Runnable, TalkRobot.IReplyable {
 	}
 
 	@Override
+	public void setRobot(TalkRobot robot) {
+		return;
+	}
+
+	@Override
 	public void setReply(String reply) {
 		mFrom = reply;
 		return;

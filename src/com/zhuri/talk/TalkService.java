@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
+import android.os.Bundle;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -19,16 +20,23 @@ import android.net.wifi.WifiManager;
 import com.zhuri.slot.*;
 import com.zhuri.talk.RoidTalkRobot;
 
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationListener;
+
 public class TalkService extends Service implements Runnable {
 	private Thread worker = null;
 	private boolean running = false;
 	private RoidTalkRobot mClient = null;
 	private WifiManager.WifiLock mWifiLock = null;
 	private PowerManager.WakeLock mWakeLock = null;
+	private LocationManager mLocationManager = null;
 	
 	static final String TAG = "TALK";
 	static final long INTERVAL_LONG = 45 * 60 * 1000;
 	static final long INTERVAL_SHORT = 3 * 60 * 1000;
+	public static final String INTENT_CHANGE_LOCATION_SETTING = "com.zhuri.change_location_setting";
 
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -39,6 +47,84 @@ public class TalkService extends Service implements Runnable {
 		Intent intent = new Intent(context, TalkService.class);
 		return intent;
 	}
+
+	private String mProvider = null;
+	final LocationListener mLocationListener = new LocationListener() {
+		@Override
+		public void onLocationChanged(Location location) {
+			if (mClient != null && location != null)
+				mClient.updateLocation(formatLocation(location));
+		}
+
+		@Override
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+
+		}
+
+		@Override
+		public void onProviderEnabled(String provider) {
+
+		}
+
+		@Override
+		public void onProviderDisabled(String provider) {
+
+		}
+	};
+
+	private String formatLocation(Location location) {
+		double altitude  = location.getAltitude();
+		double latitude  = location.getLatitude();
+		double longitude = location.getLongitude();
+
+		StringBuilder builder = new StringBuilder();
+		if (mProvider != null) {
+			builder.append("provider: ");
+			builder.append(mProvider);
+			builder.append("\n");
+		}
+		builder.append("altitude: ");
+		builder.append(altitude);
+		builder.append("\n");
+		builder.append("latitude: ");
+		builder.append(latitude);
+		builder.append("\n");
+		builder.append("longitude: ");
+		builder.append(longitude);
+		builder.append("\n");
+		builder.append("https://maps.google.com/maps?ll=" + latitude + "," + longitude + "&spn=0.004710,0.007832&t=k&hl=en");
+
+		return builder.toString();
+	}
+
+	private void startLocationListen(String provider) {
+		if (provider != null) {
+			mProvider = provider;
+			mLocationManager.removeUpdates(mLocationListener);
+			mLocationManager.requestLocationUpdates(provider, 5000, 5, mLocationListener);
+			Location location = mLocationManager.getLastKnownLocation(provider);
+			if (mClient != null && location != null)
+				mClient.updateLocation(formatLocation(location));
+		}
+		return;
+	}
+
+	public BroadcastReceiver locationSettingRcvr = new BroadcastReceiver() {
+		public void onReceive(Context context, Intent intent) {
+			if (intent.getAction().equals(INTENT_CHANGE_LOCATION_SETTING)) {
+				String action = intent.getStringExtra("action");
+				String provider = intent.getStringExtra("provider");
+
+				if (action != null) {
+					if (action.equals("start")) {
+						startLocationListen(provider);
+					} else if (action.equals("stop")) {
+						mLocationManager.removeUpdates(mLocationListener);
+					}
+				}
+			}
+		}
+	};
 
 	public BroadcastReceiver batteryLevelRcvr = new BroadcastReceiver() {
 		private String lastOuted = "";
@@ -166,6 +252,7 @@ public class TalkService extends Service implements Runnable {
 		Log.i(TAG, "onCreate");
 
 		mIntent = new Intent(this, AlarmReceiver.class);
+		mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
 		WifiManager wifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
 		mWifiLock = wifiManager.createWifiLock("com.zhuri.talk");
@@ -186,6 +273,9 @@ public class TalkService extends Service implements Runnable {
 
 		IntentFilter batteryLevelFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 		registerReceiver(batteryLevelRcvr, batteryLevelFilter);
+
+		IntentFilter locationSettingFilter = new IntentFilter(INTENT_CHANGE_LOCATION_SETTING);
+		registerReceiver(locationSettingRcvr, locationSettingFilter);
 	}
 
 	@Override
@@ -205,6 +295,7 @@ public class TalkService extends Service implements Runnable {
 			throw new RuntimeException("worker thread should not running.");
 		}
 		
+		unregisterReceiver(locationSettingRcvr);
 		unregisterReceiver(batteryLevelRcvr);
 
 		if (mWifiLock.isHeld())

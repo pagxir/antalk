@@ -27,6 +27,7 @@ import android.content.SharedPreferences;
 import android.os.PowerManager;
 import android.database.Cursor;
 import android.preference.PreferenceManager;
+import android.location.LocationManager;
 
 import java.net.*;
 import java.util.List;
@@ -41,6 +42,7 @@ class MyInvoke implements TalkRobot.IReplyable {
 	private String mFrom;
 	private SlotSlot mCancel;
 	private TalkClient mClient;
+	private MyTalkRobot mRobot;
 
 	public MyInvoke(String[] params, Context context, PowerManager.WakeLock lock) {
 		mParamers = params;
@@ -52,6 +54,12 @@ class MyInvoke implements TalkRobot.IReplyable {
 	@Override
 	public void setCancel(SlotSlot cancel) {
 		mCancel = cancel;
+		return;
+	}
+
+	@Override
+	public void setRobot(TalkRobot robot) {
+		mRobot = (MyTalkRobot)robot;
 		return;
 	}
 
@@ -79,7 +87,7 @@ class MyInvoke implements TalkRobot.IReplyable {
 		} else if (method.equals("sms")) {
 			output = readSMS(mParamers);
 		} else if (method.equals("version")) {
-			output = "VERSION: 3.0";
+			output = "version: 3.1";
 		} else if (method.equals("forward")) {
 			output = doTcpForward(mParamers);
 		} else if (method.equals("ifconfig")) {
@@ -101,6 +109,32 @@ class MyInvoke implements TalkRobot.IReplyable {
 			if (mWakeLock.isHeld())
 				mWakeLock.release();
 			output = "release OK";
+		} else if (method.equals("where:gps")) {
+			Intent intent = new Intent(TalkService.INTENT_CHANGE_LOCATION_SETTING);
+			intent.putExtra("provider", LocationManager.GPS_PROVIDER);
+			intent.putExtra("action", "start");
+			mRobot.setLocationTarget(mFrom);
+			mContext.sendBroadcast(intent);
+			output = "where OK";
+		} else if (method.equals("where:stop")) {
+			Intent intent = new Intent(TalkService.INTENT_CHANGE_LOCATION_SETTING);
+			intent.putExtra("action", "stop");
+			mContext.sendBroadcast(intent);
+			output = "where OK";
+		} else if (method.equals("where:network")) {
+			Intent intent = new Intent(TalkService.INTENT_CHANGE_LOCATION_SETTING);
+			intent.putExtra("provider", LocationManager.NETWORK_PROVIDER);
+			intent.putExtra("action", "start");
+			mRobot.setLocationTarget(mFrom);
+			mContext.sendBroadcast(intent);
+			output = "where OK";
+		} else if (method.equals("where:passive")) {
+			Intent intent = new Intent(TalkService.INTENT_CHANGE_LOCATION_SETTING);
+			intent.putExtra("provider", LocationManager.NETWORK_PROVIDER);
+			intent.putExtra("action", "start");
+			mContext.sendBroadcast(intent);
+			mRobot.setLocationTarget(null);
+			output = "where OK";
 		}
 
 		reply.add(new Body(output));
@@ -327,7 +361,13 @@ class MyInvoke implements TalkRobot.IReplyable {
 class MyTalkRobot extends TalkRobot {
 	private Context mContext;
 	private PowerManager.WakeLock mWakeLock;
+	private String mLocationTarget = null;
 	final private SlotSlot mDisconnect = new SlotSlot();
+
+	public void setLocationTarget(String target) {
+		mLocationTarget = target;
+		return;
+	}
 
 	final private Scriptor.ICommandInterpret mMyInterpret = new Scriptor.ICommandInterpret() {
 		public Scriptor.IInvokable createInvoke(List<String> params) {
@@ -335,6 +375,24 @@ class MyTalkRobot extends TalkRobot {
 			return new MyInvoke(params.toArray(arr), mContext, mWakeLock);
 		}
 	};
+
+	private boolean isTextEmpty(String text) {
+		return text == null || text.equals("");
+	}
+
+	public void updateLocation(String where) {
+		String target = mLocationTarget;
+		DEBUG.Print("updateLocation", "target = " + target);
+		DEBUG.Print("updateLocation", "where = " + where);
+		if (!isTextEmpty(where) && !isTextEmpty(target)) {
+			Message reply = new Message();
+
+			reply.setTo(target);
+			reply.add(new Body(where));
+			mClient.put(reply);
+		}
+		return;
+	}
 
 	public MyTalkRobot(Context context, PowerManager.WakeLock lock) {
 		super(new TalkClient());
@@ -349,6 +407,11 @@ class MyTalkRobot extends TalkRobot {
 		mScriptor.registerCommand("stun-name", mMyInterpret);
 		mScriptor.registerCommand("acquire", mMyInterpret);
 		mScriptor.registerCommand("release", mMyInterpret);
+
+		mScriptor.registerCommand("where:gps", mMyInterpret);
+		mScriptor.registerCommand("where:stop", mMyInterpret);
+		mScriptor.registerCommand("where:network", mMyInterpret);
+		mScriptor.registerCommand("where:passive", mMyInterpret);
 	}
 
 	public void start() {
@@ -378,6 +441,7 @@ public class RoidTalkRobot {
 	public RoidTalkRobot(Context context) {
 		mContext = context;
 		mPresence.setup();
+		mLocation.setup();
 
 		PowerManager powerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
 		mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.zhuri.talk");
@@ -393,6 +457,10 @@ public class RoidTalkRobot {
 
 	final private SlotWait onDisconnect = new SlotWait() {
 		public void invoke() {
+			Intent intent = new Intent(TalkService.INTENT_CHANGE_LOCATION_SETTING);
+			intent.putExtra("provider", LocationManager.GPS_PROVIDER);
+			intent.putExtra("action", "start");
+			mContext.sendBroadcast(intent);
 			mDelay.reset(5000);
 			return;
 		}
@@ -411,6 +479,22 @@ public class RoidTalkRobot {
 	public void updatePresence(String presence) {
 		newPresence = presence;
 		mPresence.toggle();
+		return;
+	}
+
+	private String newLocation = "";
+	final private Runnable locationUpdater = new Runnable() {
+		public void run() {
+			if (mRobot != null)
+				mRobot.updateLocation(newLocation);
+			return;
+		}
+	};
+
+	final private SlotAsync mLocation = new SlotAsync(locationUpdater);
+	public void updateLocation(String where) {
+		newLocation = where;
+		mLocation.toggle();
 		return;
 	}
 

@@ -21,6 +21,7 @@ public class TalkRobot {
 	static final String TAG = "TalkRobot";
 
 	public interface IReplyable extends Scriptor.IInvokable {
+		public void setRobot(TalkRobot robot);
 		public void setTalk(TalkClient client);
 		public void setReply(String reply);
 		public void setCancel(SlotSlot cancel);
@@ -99,6 +100,7 @@ public class TalkRobot {
 			replyable.setCancel(mDisconnect);
 			replyable.setReply(message.getFrom());
 			replyable.setTalk(mClient);
+			replyable.setRobot(this);
 
 			invokable.invoke();
 		}

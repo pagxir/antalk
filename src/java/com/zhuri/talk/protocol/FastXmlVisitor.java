@@ -95,7 +95,7 @@ public class FastXmlVisitor {
 			te.printStackTrace();
 		}
 
-		return writer.getBuffer().toString().replaceAll("\n|\r", "");
+		return writer.getBuffer().toString();
 	}  
 
 	public FastXmlVisitor getElement(String name) {
