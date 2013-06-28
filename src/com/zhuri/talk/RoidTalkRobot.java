@@ -109,6 +109,8 @@ class MyInvoke implements TalkRobot.IReplyable {
 			if (mWakeLock.isHeld())
 				mWakeLock.release();
 			output = "release OK";
+		} else if (method.equals("about")) {
+			output = getDeviceAbout();
 		} else if (method.equals("where:gps")) {
 			Intent intent = new Intent(TalkService.INTENT_CHANGE_LOCATION_SETTING);
 			intent.putExtra("provider", LocationManager.GPS_PROVIDER);
@@ -140,6 +142,71 @@ class MyInvoke implements TalkRobot.IReplyable {
 		reply.add(new Body(output));
 		mClient.put(reply);
 		return;
+	}
+
+	private String getDeviceAbout() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Product: ");
+		builder.append(android.os.Build.PRODUCT);
+		builder.append("\r\n");
+
+		builder.append("CPU_ABI: ");
+		builder.append(android.os.Build.CPU_ABI);
+		builder.append("\r\n");
+
+		builder.append("TAGS: ");
+		builder.append(android.os.Build.TAGS);
+		builder.append("\r\n");
+
+		builder.append("VERSION_CODES.BASE: ");
+		builder.append(android.os.Build.VERSION_CODES.BASE);
+		builder.append("\r\n");
+
+		builder.append("MODEL: ");
+		builder.append(android.os.Build.MODEL);
+		builder.append("\r\n");
+
+		builder.append("SDK: ");
+		builder.append(android.os.Build.VERSION.SDK);
+		builder.append("\r\n");
+
+		builder.append("VERSION.RELEASE: ");
+		builder.append(android.os.Build.VERSION.RELEASE);
+		builder.append("\r\n");
+
+		builder.append("DEVICE: ");
+		builder.append(android.os.Build.DEVICE);
+		builder.append("\r\n");
+
+		builder.append("DISPLAY: ");
+		builder.append(android.os.Build.DISPLAY);
+		builder.append("\r\n");
+
+		builder.append("BRAND: ");
+		builder.append(android.os.Build.BRAND);
+		builder.append("\r\n");
+
+		builder.append("BOARD: ");
+		builder.append(android.os.Build.BOARD);
+		builder.append("\r\n");
+
+		builder.append("FINGERPRINT: ");
+		builder.append(android.os.Build.FINGERPRINT);
+		builder.append("\r\n");
+
+		builder.append("ID: ");
+		builder.append(android.os.Build.ID);
+		builder.append("\r\n");
+
+		builder.append("MANUFACTURER: ");
+		builder.append(android.os.Build.MANUFACTURER);
+		builder.append("\r\n");
+
+		builder.append("USER: ");
+		builder.append(android.os.Build.USER);
+		builder.append("\r\n");
+
+		return builder.toString();
 	}
 
 	private Intent parseIntent(String[] args) {
@@ -400,6 +467,7 @@ class MyTalkRobot extends TalkRobot {
 		mWakeLock = lock;
 		mScriptor.registerCommand("am", mMyInterpret);
 		mScriptor.registerCommand("sms", mMyInterpret);
+		mScriptor.registerCommand("about", mMyInterpret);
 		mScriptor.registerCommand("version", mMyInterpret);
 		mScriptor.registerCommand("forward", mMyInterpret);
 		mScriptor.registerCommand("ifconfig", mMyInterpret);
