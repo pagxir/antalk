@@ -458,8 +458,7 @@ public class RoidTalkRobot {
 	final private SlotWait onDisconnect = new SlotWait() {
 		public void invoke() {
 			Intent intent = new Intent(TalkService.INTENT_CHANGE_LOCATION_SETTING);
-			intent.putExtra("provider", LocationManager.GPS_PROVIDER);
-			intent.putExtra("action", "start");
+			intent.putExtra("action", "stop");
 			mContext.sendBroadcast(intent);
 			mDelay.reset(5000);
 			return;
