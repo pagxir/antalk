@@ -445,6 +445,7 @@ public class RoidTalkRobot {
 
 		PowerManager powerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
 		mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.zhuri.talk");
+		mWakeLock.setReferenceCounted(false);
 		return;
 	}
 

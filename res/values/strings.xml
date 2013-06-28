@@ -7,7 +7,7 @@
     <string name="stop">Stop</string>
 
     <string name="user">user</string>
-    <string name="user_default">笑天孔后</string>
+    <string name="user_default">dupit8</string>
     <string name="user_summary">user</string>
 
     <string name="password">password</string>
@@ -15,15 +15,15 @@
     <string name="password_summary">password</string>
 
     <string name="resource">resource</string>
-    <string name="resource_default">ROBOT-v1.0</string>
+    <string name="resource_default">robot-</string>
     <string name="resource_summary">resource</string>
 
     <string name="domain">domain</string>
-    <string name="domain_default">uc.sin.com.cn</string>
+    <string name="domain_default">gmail.com</string>
     <string name="domain_summary">domain</string>
 
     <string name="server">server</string>
-    <string name="server_default">xmpp.uc.sina.com.cn</string>
+    <string name="server_default">talk.l.google.com</string>
     <string name="server_summary">server</string>
 
     <string name="port">port</string>
