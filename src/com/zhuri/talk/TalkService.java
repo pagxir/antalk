@@ -92,6 +92,7 @@ public class TalkService extends Service implements Runnable {
 		builder.append("longitude: ");
 		builder.append(longitude);
 		builder.append("\n");
+		builder.append("http://www.openstreetmap.org/?mlat=" + latitude + "&mlon=" + longitude + "&zoom=14&layers=M");
 		builder.append("https://maps.google.com/maps?ll=" + latitude + "," + longitude + "&spn=0.004710,0.007832&t=k&hl=en");
 
 		return builder.toString();
