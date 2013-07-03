@@ -44,13 +44,13 @@ public class TestBox {
 		Scanner sc = new Scanner(System.in);
 
 		line = sc.nextLine();
-		while (!line.startsWith("quit")) {
-			if (line.startsWith("sel ")) {
-				target = line.replace("sel ", "");
+		while (!line.startsWith(".quit")) {
+			if (line.startsWith(".select ")) {
+				target = line.replace(".select ", "");
 				System.out.println("select " + target);
-			} else if (line.startsWith("msg ")) {
-				message = line.replace("msg ", "");
-				System.out.println("message " + message);
+			} else if (line.matches("^[^.].*[a-z]*")) {
+				System.out.println("message " + line);
+				message = line;
 				mAsync.toggle();
 			}
 			line = sc.nextLine();
