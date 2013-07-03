@@ -49,15 +49,9 @@ public class TalkRobot {
 		return;
 	}
 
-	public void presence(String presence) {
-		Presence packet;
-
-		if (mClient != null) {
-			packet = new Presence();
-			packet.setStatus(presence);
-			mClient.setPresence(packet);
-		}
-
+	public void presence(Presence presence) {
+		if (mClient != null)
+			mClient.setPresence(presence);
 		return;
 	}
 

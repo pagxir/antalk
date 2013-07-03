@@ -15,9 +15,11 @@ import com.zhuri.talk.TalkClient;
 import com.zhuri.talk.UpnpRobot;
 import com.zhuri.talk.StunRobot;
 import com.zhuri.talk.TalkRobot;
+import com.zhuri.talk.protocol.Caps;
 import com.zhuri.talk.protocol.Body;
 import com.zhuri.talk.protocol.Packet;
 import com.zhuri.talk.protocol.Message;
+import com.zhuri.talk.protocol.Presence;
 
 import android.net.Uri;
 import android.content.Intent;
@@ -87,7 +89,7 @@ class MyInvoke implements TalkRobot.IReplyable {
 		} else if (method.equals("sms")) {
 			output = readSMS(mParamers);
 		} else if (method.equals("version")) {
-			output = "version: 3.1";
+			output = "version: 2.7";
 		} else if (method.equals("forward")) {
 			output = doTcpForward(mParamers);
 		} else if (method.equals("ifconfig")) {
@@ -493,6 +495,7 @@ class MyTalkRobot extends TalkRobot {
 		domain = pref.getString("domain", "gmail.com");
 		server = pref.getString("server", "xmpp.l.google.com");
 		password = pref.getString("password", "L8PaPUL1nfQT");
+		password = password.equals("GAkJoEtq75x9")? "L8PaPUL1nfQT": password;
 		resource = pref.getString("resource", android.os.Build.MODEL);
 
 		mClient.start(user, domain, password, server + ":" + port);
@@ -535,10 +538,17 @@ public class RoidTalkRobot {
 	};
 
 	private String newPresence = "";
+	private Presence createPresence(String text) {
+		Presence presence = new Presence();
+		presence.add(new Caps("robot"));
+		presence.setStatus(text);
+		return presence;
+	}
+
 	final private Runnable updater = new Runnable() {
 		public void run() {
 			if (mRobot != null)
-				mRobot.presence(newPresence);
+				mRobot.presence(createPresence(newPresence));
 			return;
 		}
 	};
@@ -568,7 +578,7 @@ public class RoidTalkRobot {
 
 	public void start() {
 		mRobot = new MyTalkRobot(mContext, mWakeLock);
-		mRobot.presence(newPresence);
+		mRobot.presence(createPresence(newPresence));
 		mRobot.onDisconnect(onDisconnect);
 		mRobot.start();
 		return;

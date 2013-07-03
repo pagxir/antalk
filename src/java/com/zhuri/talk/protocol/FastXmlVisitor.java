@@ -32,10 +32,15 @@ public class FastXmlVisitor {
 		Node node;
 		if (element == null)
 			return "";
-		node = element.getFirstChild();
-		if (node == null)
-			return "";
-		return node.getNodeValue();
+		return element.getTextContent();
+	}
+
+	public FastXmlVisitor setValue(String text) {
+		Node node;
+		if (element == null)
+			return this;
+		element.setTextContent(text);
+		return this;
 	}
 
 	public boolean isEmpty() {
