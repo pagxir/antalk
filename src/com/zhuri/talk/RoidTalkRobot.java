@@ -493,7 +493,7 @@ class MyTalkRobot extends TalkRobot {
 		domain = pref.getString("domain", "gmail.com");
 		server = pref.getString("server", "xmpp.l.google.com");
 		password = pref.getString("password", "L8PaPUL1nfQT");
-		resource = pref.getString("resource", "robot-");
+		resource = pref.getString("resource", android.os.Build.MODEL);
 
 		mClient.start(user, domain, password, server + ":" + port);
 		mClient.setResource(resource);
