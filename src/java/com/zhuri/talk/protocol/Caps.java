@@ -24,22 +24,25 @@ public class Caps extends Packet {
 	}
 
 	public boolean support(String ext) {
-		String[] supports = getExt().split(" ");
+		String exts = getExt();
 
-		for (String s: supports) {
-			if (s.equals(ext))
-				return true;
+		if (exts != null) {
+			for (String s: exts.split(" ")) {
+				if (s.equals(ext))
+					return true;
+			}
 		}
+
 		return false;
 	}
 
 	public String getExt() {
-		FastXmlVisitor visitor = new FastXmlVisitor(mElement);
+		FastXmlVisitor visitor = new FastXmlVisitor(mCaps);
 		return visitor.getAttribute("ext");
 	}
 
 	public String getVer() {
-		FastXmlVisitor visitor = new FastXmlVisitor(mElement);
+		FastXmlVisitor visitor = new FastXmlVisitor(mCaps);
 		return visitor.getAttribute("ver");
 	}
 
