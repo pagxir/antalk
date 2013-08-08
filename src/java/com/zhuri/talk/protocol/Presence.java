@@ -34,6 +34,12 @@ public class Presence extends Packet {
 		return this;
 	}
 
+	public Presence setType(String type) {
+		FastXmlVisitor visitor = new FastXmlVisitor(mElement);
+		visitor.setAttribute("type", type);
+		return this;
+	}
+
 	public Presence setStatus(String status) {
 		FastXmlVisitor visitor = new FastXmlVisitor(mElement).getElement("status");
 		if (visitor.isEmpty()) {
@@ -49,6 +55,11 @@ public class Presence extends Packet {
 		Element e = FastXmlVisitor.fastFormat(packet.toString());
 		mElement.appendChild(mElement.getOwnerDocument().adoptNode(e));
 		return this;
+	}
+
+	public String getType() {
+		FastXmlVisitor visitor = new FastXmlVisitor(mElement);
+		return visitor.getAttribute("type");
 	}
 
 	public String getFrom() {

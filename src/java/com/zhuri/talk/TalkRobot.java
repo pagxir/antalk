@@ -55,6 +55,12 @@ public class TalkRobot {
 		return;
 	}
 
+	public void send(Message message) {
+		if (mClient != null)
+			mClient.send(message);
+		return;
+	}
+
 	private boolean mIsRobotOn = true;
 	protected void onMessage(Packet packet) {
 		Message message = new Message(packet);
@@ -100,6 +106,10 @@ public class TalkRobot {
 		}
 	}
 
+	protected void onPresence(Packet packet) {
+		return;
+	}
+
 	private final SlotWait onReceive = new SlotWait() {
 		public void invoke() {
 			Packet packet = mClient.get();
@@ -108,6 +118,7 @@ public class TalkRobot {
 				DEBUG.Print("INCOMING", packet.toString());
 				if (packet.matchTag("presence")) {
 					mClient.processIncomingPresence(packet);
+					onPresence(packet);
 				} else if (packet.matchTag("message")) {
 					mClient.processIncomingMessage(packet);
 					onMessage(packet);

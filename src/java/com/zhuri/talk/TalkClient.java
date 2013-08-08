@@ -71,6 +71,11 @@ public class TalkClient {
 		return this;
 	}
 
+	final public boolean send(Message packet) {
+		/* XXXX */
+		return put(packet);
+	}
+
 	final public boolean put(Packet packet) {
 		boolean msgIsLooping = stateMatch(WF_DISCONNECT, WF_LASTFINISH);
 
