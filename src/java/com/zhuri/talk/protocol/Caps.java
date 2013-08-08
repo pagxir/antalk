@@ -18,6 +18,31 @@ public class Caps extends Packet {
 		fxv.setAttribute("node", node_uri);
 	}
 
+	Caps(Element e) {
+		mCaps = e;
+		return;
+	}
+
+	public boolean support(String ext) {
+		String[] supports = getExt().split(" ");
+
+		for (String s: supports) {
+			if (s.equals(ext))
+				return true;
+		}
+		return false;
+	}
+
+	public String getExt() {
+		FastXmlVisitor visitor = new FastXmlVisitor(mElement);
+		return visitor.getAttribute("ext");
+	}
+
+	public String getVer() {
+		FastXmlVisitor visitor = new FastXmlVisitor(mElement);
+		return visitor.getAttribute("ver");
+	}
+
 	public static boolean isTypeof(Packet packet) {
 		return (packet.matchTag(tag) && packet.matchURI(uri));
 	}
