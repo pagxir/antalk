@@ -463,6 +463,48 @@ class MyTalkRobot extends TalkRobot {
 		return;
 	}
 
+	@Override
+	protected void onMessage(Packet packet) {
+		Message message = new Message(packet);
+
+		if (message.hasBody()) {
+			String cmd;
+			String msg = message.getContent();
+			if (msg == null || msg.equals("")) {
+				DEBUG.Print("EMPTY Message");
+				return;
+			}
+
+			Intent intent = new Intent("talk.intent.action.MESSAGE");
+			intent.putExtra("message", msg);
+			intent.putExtra("from", message.getFrom());
+			mContext.sendBroadcast(intent);
+		}
+	}
+
+	@Override
+	protected void onPresence(Packet packet) {
+		Presence presence = new Presence(packet);
+
+		String type = presence.getType();
+
+		if (type.equals("unavailable")) {
+			Intent intent = new Intent("talk.intent.action.PRESENCE");
+			intent.putExtra("type", "unavailable");
+			intent.putExtra("from", presence.getFrom());
+			mContext.sendBroadcast(intent);
+		} else if (type.equals("")) {
+			Intent intent = new Intent("talk.intent.action.PRESENCE");
+			intent.putExtra("type", "available");
+			intent.putExtra("from", presence.getFrom());
+			mContext.sendBroadcast(intent);
+		} else {
+			DEBUG.Print("unkown type: " + type);
+		}
+
+		return;
+	}
+
 	public MyTalkRobot(Context context, PowerManager.WakeLock lock) {
 		super(new TalkClient());
 		mContext = context;
@@ -511,6 +553,7 @@ public class RoidTalkRobot {
 	
 	public RoidTalkRobot(Context context) {
 		mContext = context;
+		mSender.setup();
 		mPresence.setup();
 		mLocation.setup();
 
@@ -559,6 +602,33 @@ public class RoidTalkRobot {
 		mPresence.toggle();
 		return;
 	}
+
+	private String mTo = "";
+	private String mMessage = "";
+	final private Runnable sender = new Runnable() {
+		public void run() {
+			if (mTo == null || mTo.equals(""))
+				return;
+			if (mMessage == null || mMessage.equals(""))
+				return;
+			if (mRobot != null) {
+				Message message = new Message();
+				message.setTo(mTo);
+				message.add(new Body(mMessage));
+				mRobot.send(message);
+			}
+			return;
+		}
+	};
+
+	final private SlotAsync mSender = new SlotAsync(sender);
+	public void sendMessage(String to, String message) {
+		mTo = to;
+		mMessage = message;
+		mSender.toggle();
+		return;
+	}
+
 
 	private String newLocation = "";
 	final private Runnable locationUpdater = new Runnable() {

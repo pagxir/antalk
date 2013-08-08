@@ -133,7 +133,13 @@ public class TalkService extends Service implements Runnable {
 		public void onReceive(Context context, Intent intent) {
 			Log.v(TAG, "battery status change");
 
-			if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
+			if (intent.getAction().equals("talk.intent.action.SEND")) {
+				if (mClient != null) {
+					String to = intent.getStringExtra("to");
+					String msg = intent.getStringExtra("message");
+					mClient.sendMessage(to, msg);
+				}
+			} else if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
 
 				int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 				int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
@@ -274,6 +280,7 @@ public class TalkService extends Service implements Runnable {
 		am.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, realtime, INTERVAL_LONG, pendingIntent);
 
 		IntentFilter batteryLevelFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+		batteryLevelFilter.addAction("talk.intent.action.SEND");
 		registerReceiver(batteryLevelRcvr, batteryLevelFilter);
 
 		IntentFilter locationSettingFilter = new IntentFilter(INTENT_CHANGE_LOCATION_SETTING);

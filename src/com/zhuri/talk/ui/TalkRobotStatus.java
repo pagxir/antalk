@@ -5,14 +5,18 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.List;
 import java.util.Enumeration;
+import java.util.Set;
+import java.util.HashSet;
 
 import com.zhuri.talk.R;
 import com.zhuri.talk.TalkService;
 import com.zhuri.talk.PstcpService;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -22,6 +26,9 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ListView;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -37,6 +44,24 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 	static final String LOG_TAG ="TalkRobotStatus";
 	private LocationManager mLocationManager = null;
 
+	private AdapterView.OnItemClickListener mItemClick =
+		new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent,
+					View view, int pos, long id) {
+				Toast.makeText(TalkRobotStatus.this,
+						mStrings[pos], Toast.LENGTH_SHORT).show();
+				Intent intent = new Intent("talk.intent.action.SEND");
+				intent.putExtra("to", mStrings[pos]);
+				intent.putExtra("message", "stun");
+				TalkRobotStatus.this.sendBroadcast(intent);
+				return;
+			}
+		};
+
+	private String[] mStrings = new String[]{ };
+	private Set<String> mAllPeer = new HashSet<String>();
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -49,7 +74,57 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 		Button stop = (Button)findViewById(R.id.stop);
 		stop.setOnClickListener(this);
 
+		ListView list = (ListView)findViewById(R.id.user_list);
+		list.setOnItemClickListener(mItemClick);
+
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_list_item_1, mStrings);
+		list.setAdapter(adapter);
+
 		return;
+	}
+
+	BroadcastReceiver mReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+
+			if (action.equals("talk.intent.action.MESSAGE")) {
+				TextView view = (TextView)findViewById(R.id.location);
+				view.setText(intent.getStringExtra("message"));
+			} else if (action.equals("talk.intent.action.PRESENCE")) {
+				String type = intent.getStringExtra("type");
+				String from = intent.getStringExtra("from");
+				if (type.equals("unavailable")) {
+					mAllPeer.remove(intent.getStringExtra("from"));
+				} else {
+					mAllPeer.add(intent.getStringExtra("from"));
+				}
+
+				String[] newPeers = new String[mAllPeer.size()];
+				mAllPeer.toArray(newPeers);
+				ListView list = (ListView)findViewById(R.id.user_list);
+				ArrayAdapter<String> adapter = new ArrayAdapter<String>(TalkRobotStatus.this,
+						android.R.layout.simple_list_item_1, newPeers);
+				mStrings = newPeers;
+				list.setAdapter(adapter);
+			}
+		}
+	};
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		IntentFilter filter = new IntentFilter();
+		filter.addAction("talk.intent.action.MESSAGE");
+		filter.addAction("talk.intent.action.PRESENCE");
+		registerReceiver(mReceiver, filter);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		unregisterReceiver(mReceiver);
 	}
 
 	private String mProvider = null;
