@@ -57,6 +57,34 @@ public class Presence extends Packet {
 		return this;
 	}
 
+	public Caps getCaps(String node) {
+		int i;
+		String ns = Caps.uri;
+		String name = "c";
+		Element element;
+		NodeList nodelist;
+
+		if (mElement == null) {
+			return null;
+		}
+
+		nodelist = mElement.getChildNodes();
+		for (i = 0; i < nodelist.getLength(); i++) {
+			Node enode = nodelist.item(i);
+			if (enode.getNodeType() == Node.ELEMENT_NODE) {
+				Element t = (Element)enode;
+				if (name.equals(t.getNodeName()) 
+						&& ns.equals(t.getNamespaceURI())) {
+					if (node.equals(t.getAttribute("node"))) {
+						return new Caps(t);
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
 	public String getType() {
 		FastXmlVisitor visitor = new FastXmlVisitor(mElement);
 		return visitor.getAttribute("type");
