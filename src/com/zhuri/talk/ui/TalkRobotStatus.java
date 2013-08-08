@@ -81,6 +81,7 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 				android.R.layout.simple_list_item_1, mStrings);
 		list.setAdapter(adapter);
 
+		startService(TalkService.serviceIntent(this));
 		return;
 	}
 
@@ -201,6 +202,7 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 		super.onDestroy();
 		if (mLocationManager != null)
 			mLocationManager.removeUpdates(mLocationListener);
+		stopService(TalkService.serviceIntent(this));
 		return;
 	}
 
@@ -208,13 +210,13 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 	public void onClick(View view) {
 		switch (view.getId()) {
 			case R.id.start:
-				startService(PstcpService.serviceIntent(this));
+				/* startService(PstcpService.serviceIntent(this)); */
 				startService(TalkService.serviceIntent(this));
 				break;
 
 			case R.id.stop:
 				stopService(TalkService.serviceIntent(this));
-				stopService(PstcpService.serviceIntent(this));
+				/* stopService(PstcpService.serviceIntent(this)); */
 				break;
 
 			default:
