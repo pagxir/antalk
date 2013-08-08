@@ -485,15 +485,17 @@ class MyTalkRobot extends TalkRobot {
 	@Override
 	protected void onPresence(Packet packet) {
 		Presence presence = new Presence(packet);
+		Caps caps = presence.getCaps(Caps.node_uri);
 
 		String type = presence.getType();
+		boolean support_robot = (caps != null? caps.support("robot"): false);
 
 		if (type.equals("unavailable")) {
 			Intent intent = new Intent("talk.intent.action.PRESENCE");
 			intent.putExtra("type", "unavailable");
 			intent.putExtra("from", presence.getFrom());
 			mContext.sendBroadcast(intent);
-		} else if (type.equals("")) {
+		} else if (type.equals("") && support_robot) {
 			Intent intent = new Intent("talk.intent.action.PRESENCE");
 			intent.putExtra("type", "available");
 			intent.putExtra("from", presence.getFrom());
@@ -583,7 +585,7 @@ public class RoidTalkRobot {
 	private String newPresence = "";
 	private Presence createPresence(String text) {
 		Presence presence = new Presence();
-		presence.add(new Caps("robot"));
+		presence.add(new Caps(""));
 		presence.setStatus(text);
 		return presence;
 	}
