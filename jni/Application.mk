@@ -14,6 +14,7 @@
 #
 
 APP_PLATFORM := android-8
+APP_STL := stlport_static 
 
 # This is the default Application.mk that is being used for applications
 # that don't provide $PROJECT_PATH/jni/Application.mk
