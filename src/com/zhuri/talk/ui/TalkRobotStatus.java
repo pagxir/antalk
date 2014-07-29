@@ -9,6 +9,7 @@ import java.util.Enumeration;
 import com.zhuri.talk.R;
 import com.zhuri.talk.TalkService;
 import com.zhuri.talk.PstcpService;
+import com.zhuri.talk.MyVPNService;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -166,6 +167,14 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 			menu.add(Menu.NONE, Menu.FIRST + 4, 4, R.string.passive_provider)
 			.setIcon(android.R.drawable.ic_menu_camera);
 
+		MenuItem item5 = 
+			menu.add(Menu.NONE, Menu.FIRST + 5, 5, R.string.start_vpn_service)
+			.setIcon(android.R.drawable.ic_menu_search);
+
+		MenuItem item6 = 
+			menu.add(Menu.NONE, Menu.FIRST + 6, 6, R.string.stop_vpn_service)
+			.setIcon(android.R.drawable.ic_menu_upload);
+
 		return true;
     }   
 
@@ -197,6 +206,16 @@ public class TalkRobotStatus extends Activity implements OnClickListener {
 				if (mLocationManager != null)
 					mLocationManager.removeUpdates(mLocationListener);
 				startLocationListen(LocationManager.PASSIVE_PROVIDER);
+				break;
+
+			case Menu.FIRST + 5:
+                Intent vpnService = MyVPNService.serviceIntent(this);
+				startService(vpnService);
+				break;
+
+			case Menu.FIRST + 6:
+                Intent vpnService1 = MyVPNService.serviceIntent(this);
+				stopService(vpnService1);
 				break;
         }   
 
